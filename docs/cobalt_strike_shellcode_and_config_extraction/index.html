@@ -35,7 +35,7 @@ In this post contains the analysis of two samples: Staged and Stageless payload.
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "https:\/\/n0tr3alx.github.io\/cobalt_strike_shellcode_and_config_extraction\/"
-        },"image": ["https:\/\/avatars.githubusercontent.com\/u\/181849985?v=4"],"genre": "posts","wordcount":  656 ,
+        },"image": ["https:\/\/avatars.githubusercontent.com\/u\/181849985?v=4"],"genre": "posts","wordcount":  696 ,
         "url": "https:\/\/n0tr3alx.github.io\/cobalt_strike_shellcode_and_config_extraction\/","datePublished": "2025-03-03T20:19:51-03:00","dateModified": "2025-03-04T00:06:58-03:00","publisher": {
             "@type": "Organization",
             "name": "","logo": "https:\/\/avatars.githubusercontent.com\/u\/181849985?v=4"},"author": {
@@ -109,7 +109,7 @@ In this post contains the analysis of two samples: Staged and Stageless payload.
             <div class="toc-content" id="toc-content-auto"></div>
         </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Cobalt Strike: Shellcode and Config extraction</h1><div class="post-meta">
             <div class="post-meta-line"><span class="post-author"><a href="/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>Lucas Volpiano</a></span></div>
-            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2025-03-03">2025-03-03</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;656 words&nbsp;
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2025-03-03">2025-03-03</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;696 words&nbsp;
                 <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;4 minutes&nbsp;</div>
         </div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
@@ -142,6 +142,7 @@ In this post contains the analysis of two samples: Staged and Stageless payload.
 <img src="/static/CobaltStrike/Pasted_image_20250303171943.png" alt="drawing" width="700"/>
 <img src="/static/CobaltStrike/Pasted_image_20250303171819.png" alt="drawing" width="700"/>
 <p>Lets start setting some breakpoints in the observed APIs in <a href="https://x64dbg.com/" target="_blank" rel="noopener noreffer ">x64dbg</a>. These APIs like VirtualAlloc and VirtualProtect can be used either to self injection or remote injection.</p>
+<p>Note: Theres a bunch of APIs related to self injection or remote injection that we can set breakpoints like VirtualAllocEx, WriteProcessMemory, NtWriteVirtualMemory and others that can be used in the same context, for this analysis only VirtualAlloc will be enough.</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1

@@ -21,6 +21,8 @@ Lets start with the staged payload, the first thing that caught my attention in 
 
 Lets start setting some breakpoints in the observed APIs in [x64dbg](https://x64dbg.com/). These APIs like VirtualAlloc and VirtualProtect can be used either to self injection or remote injection. 
 
+Note: Theres a bunch of APIs related to self injection or remote injection that we can set breakpoints like VirtualAllocEx, WriteProcessMemory, NtWriteVirtualMemory and others that can be used in the same context, for this analysis only VirtualAlloc will be enough.
+
 ```
 bp VirtualAlloc
 ```
