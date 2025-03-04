@@ -3,5 +3,15 @@
         <title>All Posts - N0tR3al Hub</title>
         <link>https://n0tr3alx.github.io/posts/</link>
         <description>All Posts | N0tR3al Hub</description>
-        <generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Mon, 03 Mar 2025 20:19:51 -0300</lastBuildDate><atom:link href="https://n0tr3alx.github.io/posts/" rel="self" type="application/rss+xml" /></channel>
+        <generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Mon, 03 Mar 2025 20:19:51 -0300</lastBuildDate><atom:link href="https://n0tr3alx.github.io/posts/" rel="self" type="application/rss+xml" /><item>
+    <title>Cobalt Strike: Shellcode and Config extraction</title>
+    <link>https://n0tr3alx.github.io/cobalt_strike_shellcode_and_config_extraction/</link>
+    <pubDate>Mon, 03 Mar 2025 20:19:51 -0300</pubDate>
+    <author>Lucas Volpiano</author>
+    <guid>https://n0tr3alx.github.io/cobalt_strike_shellcode_and_config_extraction/</guid>
+    <description><![CDATA[<h3 id="overview">Overview</h3>
+<p><a href="https://www.cobaltstrike.com/" target="_blank" rel="noopener noreffer ">Cobalt Strike</a> is a commercial red team and adversary simulation tool. It is widely used by security professionals to assess the security of networks and systems by simulating advanced persistent threats (APTs). As everything, due to its powerful capabilities, it has also been misused by cybercriminals and threat actors.</p>
+<p>In this post contains the analysis of two samples: Staged and Stageless payload. The extraction of the shellcode and the beacon for its configuration are quite similar in both payloads.</p>]]></description>
+</item>
+</channel>
 </rss>
