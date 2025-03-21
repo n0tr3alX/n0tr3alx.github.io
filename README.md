@@ -1,2 +1,2 @@
-# n0tr3al.github.io by Lucas Volpiano
-Coding &amp; Malware &amp; Reverse Engineering
+# n0tr3alx.github.io by Lucas Volpiano
+Malware &amp; Reverse Engineering &amp; Some Other Stuff
