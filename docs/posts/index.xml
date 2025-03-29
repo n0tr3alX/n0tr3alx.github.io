@@ -3,7 +3,17 @@
         <title>All Posts - N0tR3al Hub</title>
         <link>https://n0tr3alx.github.io/posts/</link>
         <description>All Posts | N0tR3al Hub</description>
-        <generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Fri, 21 Mar 2025 10:07:31 -0300</lastBuildDate><atom:link href="https://n0tr3alx.github.io/posts/" rel="self" type="application/rss+xml" /><item>
+        <generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Sat, 29 Mar 2025 00:16:07 -0300</lastBuildDate><atom:link href="https://n0tr3alx.github.io/posts/" rel="self" type="application/rss+xml" /><item>
+    <title>ATM Malware Analysis: Ploutus Malware – Let’s Make This ATM Spit That Cash Out!</title>
+    <link>https://n0tr3alx.github.io/atm_malware/</link>
+    <pubDate>Sat, 29 Mar 2025 00:16:07 -0300</pubDate>
+    <author>Lucas Volpiano</author>
+    <guid>https://n0tr3alx.github.io/atm_malware/</guid>
+    <description><![CDATA[<h3 id="overview">Overview</h3>
+<p>ATM malwares are designed to compromise and manipulate automated teller machines (ATMs) for financial gain. These threats require the attacker to have physical access to the ATM to install the malware (Like a USB port access), connect external devices for activation, and, of course, cash out the money without requiring a card.</p>
+<p>There are many ATM malwares families but for this post i&rsquo;m focusing in the Ploutus malware family. Ploutus was first identified in Mexico in 2013 and has since evolved with new variants, including Ploutus-D, which emerged in 2017. This malware was first seen targeting <a href="https://www.kal.com/en/products/kalignite-platform" target="_blank" rel="noopener noreffer ">KAL’s Kalignite application</a>, which runs on various ATM vendors across different countries. However, the list of ATM vendors targeted has been observed to increase with new variants of the malware.</p>]]></description>
+</item>
+<item>
     <title>From Fake captcha to Lumma Stealer: JavaScript, Powerhsell and .NET analysis</title>
     <link>https://n0tr3alx.github.io/from_fake_captcha_to_lumma_stealer/</link>
     <pubDate>Fri, 21 Mar 2025 10:07:31 -0300</pubDate>
