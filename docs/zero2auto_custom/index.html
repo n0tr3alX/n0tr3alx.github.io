@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>Zero2Auto: Custom Sample - N0tR3al Hub</title><meta name="Description" content="Malware &amp; Reverse Engineering &amp; Some Other Stuff"><meta property="og:url" content="http://localhost:1313/zero2auto_custom/">
+  <meta property="og:site_name" content="N0tR3al Hub">
+  <meta property="og:title" content="Zero2Auto: Custom Sample">
+  <meta property="og:description" content="Overview This is an analysis of a custom sample from Zero2Auto, my objective was to develop a script that automates the decryption process for the first stage of the malware. After that, I dive into a more in-depth analysis of its behavior and structure. Hope you enjoy the process and find it insightful!
+The Case During an ongoing investigation, one of our IR team members managed to locate an unknown sample on an infected machine belonging to one of our clients. We cannot pass that sample onto you currently as we are still analyzing it to determine what data was exfilatrated. However, one of our backend analysts developed a YARA rule based on the malware packer, and we were able to locate a similar binary that seemed to be an earlier version of the sample we’re dealing with. Would you be able to take a look at it? We’re all hands on deck here, dealing with this situation, and so we are unable to take a look at it ourselves. We’re not too sure how much the binary has changed, though developing some automation tools might be a good idea, in case the threat actors behind it start utilizing something like Cutwail to push their samples.">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2025-05-07T09:00:00-03:00">
+    <meta property="article:modified_time" content="2025-05-07T09:00:00-03:00">
+    <meta property="og:image" content="http://localhost:1313/logo.png">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="http://localhost:1313/logo.png">
+  <meta name="twitter:title" content="Zero2Auto: Custom Sample">
+  <meta name="twitter:description" content="Overview This is an analysis of a custom sample from Zero2Auto, my objective was to develop a script that automates the decryption process for the first stage of the malware. After that, I dive into a more in-depth analysis of its behavior and structure. Hope you enjoy the process and find it insightful!
+The Case During an ongoing investigation, one of our IR team members managed to locate an unknown sample on an infected machine belonging to one of our clients. We cannot pass that sample onto you currently as we are still analyzing it to determine what data was exfilatrated. However, one of our backend analysts developed a YARA rule based on the malware packer, and we were able to locate a similar binary that seemed to be an earlier version of the sample we’re dealing with. Would you be able to take a look at it? We’re all hands on deck here, dealing with this situation, and so we are unable to take a look at it ourselves. We’re not too sure how much the binary has changed, though developing some automation tools might be a good idea, in case the threat actors behind it start utilizing something like Cutwail to push their samples.">
+<meta name="application-name" content="My cool site">
+<meta name="apple-mobile-web-app-title" content="My cool site"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/static/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png"><link rel="mask-icon" href="/static/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="http://localhost:1313/zero2auto_custom/" /><link rel="prev" href="http://localhost:1313/atm_malware/" /><link rel="stylesheet" href="/css/style.min.css"><link rel="preload" href="/lib/fontawesome-free/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="/lib/fontawesome-free/all.min.css"></noscript><link rel="preload" href="/lib/animate/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="/lib/animate/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Zero2Auto: Custom Sample",
+        "inLanguage": "en",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "http:\/\/localhost:1313\/zero2auto_custom\/"
+        },"image": ["https:\/\/avatars.githubusercontent.com\/u\/181849985?v=4"],"genre": "posts","wordcount":  925 ,
+        "url": "http:\/\/localhost:1313\/zero2auto_custom\/","datePublished": "2025-05-07T09:00:00-03:00","dateModified": "2025-05-07T09:00:00-03:00","publisher": {
+            "@type": "Organization",
+            "name": "","logo": "https:\/\/avatars.githubusercontent.com\/u\/181849985?v=4"},"author": {
+                "@type": "Person",
+                "name": "Lucas Volpiano"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/" title="N0tR3al Hub">Malware &amp; Reverse Engineering &amp; Some Other Stuff</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/posts/"> Posts </a><a class="menu-item" href="/tags/"> Tags </a><a class="menu-item" href="/categories/"> Categories </a><a class="menu-item" href="/about/"> About </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/" title="N0tR3al Hub">Malware &amp; Reverse Engineering &amp; Some Other Stuff</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/posts/" title="">Posts</a><a class="menu-item" href="/tags/" title="">Tags</a><a class="menu-item" href="/categories/" title="">Categories</a><a class="menu-item" href="/about/" title="">About</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Zero2Auto: Custom Sample</h1><div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>Lucas Volpiano</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2025-05-07">2025-05-07</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;925 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;5 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#the-case">The Case</a></li>
+        <li><a href="#analysis">Analysis</a></li>
+        <li><a href="#concluding-thoughts">Concluding Thoughts</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><h3 id="overview">Overview</h3>
+<p>This is an analysis of a custom sample from Zero2Auto, my objective was to develop a script that automates the decryption process for the first stage of the malware. After that, I dive into a more in-depth analysis of its behavior and structure. Hope you enjoy the process and find it insightful!</p>
+<img src="/static/Zero2auto/Pasted image 20250507173734.png" alt="drawing" width="1000"/>
+<h3 id="the-case">The Case</h3>
+<blockquote>
+<p>During an ongoing investigation, one of our IR team members managed to locate an unknown sample on an infected machine belonging to one of our clients. We cannot pass that sample onto you currently as we are still analyzing it to determine what data was exfilatrated. However, one of our backend analysts developed a YARA rule based on the malware packer, and we were able to locate a similar binary that seemed to be an earlier version of the sample we&rsquo;re dealing with. Would you be able to take a look at it? We&rsquo;re all hands on deck here, dealing with this situation, and so we are unable to take a look at it ourselves.
+We&rsquo;re not too sure how much the binary has changed, though developing some automation tools might be a good idea, in case the threat actors behind it start utilizing something like Cutwail to push their samples.</p>
+</blockquote>
+<h3 id="analysis">Analysis</h3>
+<p>To start, let&rsquo;s take a look at the sample in DiE. All sections appear normal, except .rsrc, which has very high entropy.</p>
+<img src="/static/Zero2auto/Pasted image 20250427094242.png" alt="drawing" width="700"/>
+<p>Looking at the imports, we only see kernel32.dll and a few suspicious functions</p>
+<img src="/static/Zero2auto/Pasted image 20250427094316.png" alt="drawing" width="700"/>
+<p>This raises suspicion that functions may be imported dynamically using LoadLibrary and GetProcAddress. Let’s jump to IDA Pro for a closer look.</p>
+<img src="/static/Zero2auto/main_dec.png" alt="drawing" width="700"/>
+<p>First, we see strange strings being pushed before calling sub_401300. After that, LoadLibrary and GetProcAddress are called. This suggests dynamic API resolution after decrypting the function names. Let’s analyze sub_401300.</p>
+<p>The function implements ROT-13, shifting each character by <strong>13</strong> positions in a fixed alphabet:</p>
+<img src="/static/Zero2auto/Pasted image 20250427101829.png" alt="drawing" width="700"/>
+<p>With that in mind, here are the decoded strings observed during execution:</p>
+<table>
+  <thead>
+      <tr>
+          <th>Before</th>
+          <th>After</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>.5ea5/QPY4//</td>
+          <td>kernel32.dll</td>
+      </tr>
+      <tr>
+          <td>yb14E5fbhe35</td>
+          <td>LoadResource</td>
+      </tr>
+      <tr>
+          <td>F5gG8e514pbag5kg</td>
+          <td>SetThreadContext</td>
+      </tr>
+      <tr>
+          <td>pe51g5Ceb35ffn</td>
+          <td>CreateProcessA</td>
+      </tr>
+      <tr>
+          <td>I9egh1/n//b3rk</td>
+          <td>VirtualAllocEx</td>
+      </tr>
+      <tr>
+          <td>E5fh=5G8e514</td>
+          <td>ResumeThread</td>
+      </tr>
+      <tr>
+          <td>t5gG8e514pbag5kg</td>
+          <td>GetThreadContext</td>
+      </tr>
+      <tr>
+          <td>Je9g5Ceb35ffz5=bel</td>
+          <td>WriteProcessMemory</td>
+      </tr>
+      <tr>
+          <td>I9egh1/n//b3</td>
+          <td>VirtualAlloc</td>
+      </tr>
+      <tr>
+          <td>E514Ceb35ffz5=bel</td>
+          <td>ReadProcessMemory</td>
+      </tr>
+      <tr>
+          <td>F9m5b6E5fbhe35</td>
+          <td>SizeofResource</td>
+      </tr>
+      <tr>
+          <td>s9a4E5fbhe35n</td>
+          <td>FindResourceA</td>
+      </tr>
+      <tr>
+          <td>yb3.E5fbhe35</td>
+          <td>LockResource</td>
+      </tr>
+  </tbody>
+</table>
+<p>There’s a lot happening in each function, so to summarize:</p>
+<p>This sample creates a suspended copy of itself using CreateProcessA with the 4th parameter set to 0x00000004. This is confirmed via debugging.</p>
+<img src="/static/Zero2auto/Pasted image 20250427112501.png" alt="drawing" width="700"/>
+<img src="/static/Zero2auto/Pasted image 20250427112517.png" alt="drawing" width="700"/>
+<p>Next, it locates the .rsrc section (with high entropy) and loads it.</p>
+<img src="/static/Zero2auto/Pasted image 20250427104515.png" alt="drawing" width="1000"/>
+<p>Then it retrieves the size using SizeofResource, which is 0x0001541C.</p>
+<img src="/static/Zero2auto/Pasted image 20250427104707.png" alt="drawing" width="1000"/>
+<p>It then calls VirtualAlloc, but with size 0x00015400</p>
+<img src="/static/Zero2auto/Pasted image 20250503125041.png" alt="drawing" width="700"/>
+<p>This is slightly suspicious, and with the next piece of code, everything starts to make sense:</p>
+<img src="/static/Zero2auto/Pasted image 20250427111607.png" alt="drawing" width="700"/>
+<p>Its a RC4 decryption routine, so what is probably happen is that it is considering only the content of .rsrc after 0x1C bytes from the start and maybe before that is the key for decryption</p>
+<img src="/static/Zero2auto/Pasted image 20250503134553.png" alt="drawing" width="700"/>
+<p>Let&rsquo;s debug until we find something related to the decryption key in the routine, and&hellip; there it is! The key is kkd5YdPM24VBXmi, and it&rsquo;s located right before the encrypted content. Nice!</p>
+<img src="/static/Zero2auto/Pasted image 20250427104908.png" alt="drawing" width="700"/>
+<p>Using CyberChef, we can decrypt the .rsrc content after the key to reveal a second executable:</p>
+<img src="/static/Zero2auto/Pasted image 20250427110735.png" alt="drawing" width="700"/>
+<p>Using this knowledge, I created a Python script to automate the decryption of the embedded executable: <a href="https://github.com/n0tr3alX/Zero2Auto-Custom-Sample" target="_blank" rel="noopener noreffer ">https://github.com/n0tr3alX/Zero2Auto-Custom-Sample</a></p>
+<p>let’s continue the analysis. Once again one value caught my attention: 0xEDB88320 a well-known constant from the CRC-32 hashing algorithm, indicating API hashing is being used.</p>
+<img src="/static/Zero2auto/Pasted image 20250429205405.png" alt="drawing" width="700"/>
+<p>And looking a bit further it is possible prove this theory, a classic routine of load library, a loop to check the hash of each import, and then GetProcAddress to get the function addresses.</p>
+<img src="/static/Zero2auto/Pasted image 20250429205135.png" alt="drawing" width="700"/>
+<p>To speed things up, I used <a href="https://github.com/OALabs/hashdb-ida" target="_blank" rel="noopener noreffer ">hash db</a> to look up the CRC-32 hashes.</p>
+<img src="/static/Zero2auto/Pasted image 20250504143935.png" alt="drawing" width="700"/>
+<img src="/static/Zero2auto/Pasted image 20250504144245.png" alt="drawing" width="700"/>
+<p>So lets take a look again in the main function again, it checks whether the filename is svchost.exe. If not, it executes anti-analysis and anti-debugging routines using IsDebuggerPresent, CreateToolhelp32Snapshot, Process32FirstW, and Process32NextW, looking for x32dbg.exe (easily bypassed by renaming it).</p>
+<img src="/static/Zero2auto/Pasted image 20250504144405.png" alt="drawing" width="700"/>
+<img src="/static/Zero2auto/Pasted image 20250429215748.png" alt="drawing" width="700"/>
+<p>But both of then have the same core functions:</p>
+<img src="/static/Zero2auto/Pasted image 20250429215748.png" alt="drawing" width="700"/>
+<p>It first resolves some Windows APIs that will connect to a URL and then retrieve its content using InternetReadFile. After that, a value located at xmmword_413C7C and xmmword_413C8C is processed: each character is shifted four positions to the left (using ROL1), then XORed with 0xC5.</p>
+<img src="/static/Zero2auto/url.png" alt="drawing" width="700"/>
+<p>So lets use cyberchef to do it!</p>
+<img src="/static/Zero2auto/Pasted image 20250505193553.png" alt="drawing" width="700"/>
+<p>And we have a pastebin URL, that contains another URL.</p>
+<img src="/static/Zero2auto/Pasted image 20250503180255.png" alt="drawing" width="700"/>
+<img src="/static/Zero2auto/Pasted image 20250503180245.png" alt="drawing" width="700"/>
+<p>This URL is passed to a function that appears to retrieve the content from it. (Note that cruloader is set as the user agent.)</p>
+<img src="/static/Zero2auto/Pasted image 20250505194140.png" alt="drawing" width="700"/>
+<img src="/static/Zero2auto/Pasted image 20250429220013.png" alt="drawing" width="700"/>
+<p>So the result of this function is the URL inside the Pastebin. Moving on with the execution, we again have the same call to the function that retrieves the content of the URL, now using the URL that points to the PNG file</p>
+<img src="/static/Zero2auto/Pasted image 20250505194930.png" alt="drawing" width="700"/>
+<p>After that, it creates a directory and a file in the user&rsquo;s temp folder, and the PNG file is written to disk.</p>
+<img src="/static/Zero2auto/Pasted image 20250503175515.png" alt="drawing" width="700"/>
+<img src="/static/Zero2auto/Pasted image 20250505200411.png" alt="drawing" width="700"/>
+<p>Then it starts doing something really interesting: it searches for the string redaolurc (which is cruloader reversed) within the content of the PNG, likely to locate a specific region of the file.</p>
+<img src="/static/Zero2auto/Pasted image 20250505200823.png" alt="drawing" width="700"/>
+<img src="/static/Zero2auto/Pasted image 20250503181442.png" alt="drawing" width="700"/>
+<p>Right after that, it jumps 9 bytes (to skip the cruloader string) and starts performing a XOR operation with 0x61</p>
+<img src="/static/Zero2auto/Pasted image 20250505201511.png" alt="drawing" width="700"/>
+<p>So let&rsquo;s do this in CyberChef&hellip; and there it is, the final binary!</p>
+<img src="/static/Zero2auto/Pasted image 20250503182732.png" alt="drawing" width="700"/>
+<p>After this, it performs a classic process hollowing technique on a suspended svchost.exe.</p>
+<img src="/static/Zero2auto/Pasted image 20250503200705.png" alt="drawing" width="700"/>
+<img src="/static/Zero2auto/Pasted image 20250505204004.png" alt="drawing" width="700"/>
+<img src="/static/Zero2auto/Pasted image 20250505203923.png" alt="drawing" width="700"/>
+<p>Executing the final binary&hellip;..</p>
+<img src="/static/Zero2auto/Pasted image 20250505204113.png" alt="drawing" width="700"/>
+<h3 id="concluding-thoughts">Concluding Thoughts</h3>
+<p>Zero2Auto is an amazing course, and each chapter is really rich in knowledge. Hopefully, this can teach something new!</p>
+<p>Thank you for taking the time to read this analysis! If you have any questions, insights, or suggestions, feel free to reach out.</p>
+</div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2025-05-07</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="http://localhost:1313/zero2auto_custom/" data-title="Zero2Auto: Custom Sample"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="http://localhost:1313/zero2auto_custom/"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Linkedin" data-sharer="linkedin" data-url="http://localhost:1313/zero2auto_custom/"><i class="fab fa-linkedin fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on WhatsApp" data-sharer="whatsapp" data-url="http://localhost:1313/zero2auto_custom/" data-title="Zero2Auto: Custom Sample" data-web><i class="fab fa-whatsapp fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="http://localhost:1313/zero2auto_custom/" data-title="Zero2Auto: Custom Sample"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Reddit" data-sharer="reddit" data-url="http://localhost:1313/zero2auto_custom/"><i class="fab fa-reddit fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/atm_malware/" class="prev" rel="prev" title="ATM Malware Analysis: Ploutus Malware – Let’s Make This ATM Spit That Cash Out!"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>ATM Malware Analysis: Ploutus Malware – Let’s Make This ATM Spit That Cash Out!</a></div>
+</div>
+</article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line"><h1 id="hack" style="font-size:16px;"></h1><script>let t="HACK THE PLANET",i=0,s=()=>{if(i<t.length){document.getElementById("hack").innerHTML+=t[i];i++;setTimeout(s,100);}};s();</script></div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/" target="_blank"></a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="/lib/katex/katex.min.css"><link rel="stylesheet" href="/lib/cookieconsent/cookieconsent.min.css"><script type="text/javascript" src="/lib/autocomplete/autocomplete.min.js"></script><script type="text/javascript" src="/lib/lunr/lunr.min.js"></script><script type="text/javascript" src="/lib/lazysizes/lazysizes.min.js"></script><script type="text/javascript" src="/lib/clipboard/clipboard.min.js"></script><script type="text/javascript" src="/lib/sharer/sharer.min.js"></script><script type="text/javascript" src="/lib/katex/katex.min.js"></script><script type="text/javascript" src="/lib/katex/contrib/auto-render.min.js"></script><script type="text/javascript" src="/lib/katex/contrib/copy-tex.min.js"></script><script type="text/javascript" src="/lib/katex/contrib/mhchem.min.js"></script><script type="text/javascript" src="/lib/cookieconsent/cookieconsent.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"cookieconsent":{"content":{"dismiss":"Got it!","link":"Learn more","message":"This website uses Cookies to improve your experience."},"enable":true,"palette":{"button":{"background":"#f0f0f0"},"popup":{"background":"#1aa3ff"}},"theme":"edgeless"},"math":{"delimiters":[{"display":true,"left":"$$","right":"$$"},{"display":true,"left":"\\[","right":"\\]"},{"display":true,"left":"\\begin{equation}","right":"\\end{equation}"},{"display":true,"left":"\\begin{equation*}","right":"\\end{equation*}"},{"display":true,"left":"\\begin{align}","right":"\\end{align}"},{"display":true,"left":"\\begin{align*}","right":"\\end{align*}"},{"display":true,"left":"\\begin{alignat}","right":"\\end{alignat}"},{"display":true,"left":"\\begin{alignat*}","right":"\\end{alignat*}"},{"display":true,"left":"\\begin{gather}","right":"\\end{gather}"},{"display":true,"left":"\\begin{CD}","right":"\\end{CD}"},{"display":false,"left":"$","right":"$"},{"display":false,"left":"\\(","right":"\\)"}],"strict":false},"search":{"highlightTag":"em","lunrIndexURL":"/index.json","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"lunr"}};</script><script type="text/javascript" src="/js/theme.min.js"></script></body>
+</html>
