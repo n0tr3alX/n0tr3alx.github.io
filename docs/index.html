@@ -112,6 +112,16 @@
 <p>In this post, I am going to explore some of its stages and the deobfuscation of the payloads, focusing on JavaScript, PowerShell, and .NET.</p></div><div class="post-footer">
         <a href="/from_fake_captcha_to_lumma_stealer/">Read More</a></div>
 </article><article class="single summary" itemscope itemtype="http://schema.org/Article"><h1 class="single-title" itemprop="name headline">
+        <a href="/zero2auto_custom/">Zero2Auto: Custom Sample</a>
+    </h1><div class="post-meta"><span class="post-author"><a href="/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>Lucas Volpiano</a></span>&nbsp;<span class="post-publish">published on <time datetime="2025-03-21">2025-03-21</time></span></div><div class="content"><h3 id="overview">Overview</h3>
+<p>This is an analysis of a custom sample from Zero2Auto, my objective was to develop a script that automates the decryption process for the first stage of the malware. After that, I dive into a more in-depth analysis of its behavior and structure. Hope you enjoy the process and find it insightful!</p>
+<img src="/static/Zero2auto/Pasted image 20250507173734.png" alt="drawing" width="1000"/>
+<h3 id="the-case">The Case</h3>
+<blockquote>
+<p>During an ongoing investigation, one of our IR team members managed to locate an unknown sample on an infected machine belonging to one of our clients. We cannot pass that sample onto you currently as we are still analyzing it to determine what data was exfilatrated. However, one of our backend analysts developed a YARA rule based on the malware packer, and we were able to locate a similar binary that seemed to be an earlier version of the sample we&rsquo;re dealing with. Would you be able to take a look at it? We&rsquo;re all hands on deck here, dealing with this situation, and so we are unable to take a look at it ourselves.
+We&rsquo;re not too sure how much the binary has changed, though developing some automation tools might be a good idea, in case the threat actors behind it start utilizing something like Cutwail to push their samples.</p></div><div class="post-footer">
+        <a href="/zero2auto_custom/">Read More</a></div>
+</article><article class="single summary" itemscope itemtype="http://schema.org/Article"><h1 class="single-title" itemprop="name headline">
         <a href="/cobalt_strike_shellcode_and_config_extraction/">Cobalt Strike: Shellcode and Config extraction</a>
     </h1><div class="post-meta"><span class="post-author"><a href="/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>Lucas Volpiano</a></span>&nbsp;<span class="post-publish">published on <time datetime="2025-03-03">2025-03-03</time></span></div><div class="content"><h3 id="overview">Overview</h3>
 <p><a href="https://www.cobaltstrike.com/" target="_blank" rel="noopener noreffer ">Cobalt Strike</a> is a commercial red team and adversary simulation tool. It is widely used by security professionals to assess the security of networks and systems by simulating advanced persistent threats (APTs). As everything, due to its powerful capabilities, it has also been misused by cybercriminals and threat actors.</p>
