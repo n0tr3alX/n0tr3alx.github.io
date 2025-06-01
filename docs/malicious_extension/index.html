@@ -1,28 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>Malicious Browser Extension Analysis: MSI installer -&gt; malicious extension -&gt; C2 domain hidden in crypto transactions - N0tR3al Hub</title><meta name="Description" content="Malware &amp; Reverse Engineering &amp; Some Other Stuff"><meta property="og:url" content="http://localhost:1313/malicious_extension/">
+        <title>Malicious Browser Extension Analysis: MSI installer -&gt; malicious extension -&gt; C2 domain hidden in crypto transactions - N0tR3al Hub</title><meta name="Description" content="Malware &amp; Reverse Engineering &amp; Some Other Stuff"><meta property="og:url" content="https://n0tr3alx.github.io/malicious_extension/">
   <meta property="og:site_name" content="N0tR3al Hub">
   <meta property="og:title" content="Malicious Browser Extension Analysis: MSI installer -&gt; malicious extension -&gt; C2 domain hidden in crypto transactions">
   <meta property="og:description" content="Overview While randomly navigating, I found a very interesting malware, that while analyzing it didn’t create a traditional persistence on the machine via the registry, services, scheduled tasks, etc. Instead, it created a malicious extension on all of the user’s browsers. Additionally, the initial stage used a very interesting feature of the MSI file to execute a CustomAction from a DLL. This is a very in-depth analysis, so I hope you enjoy it!">
   <meta property="og:locale" content="en">
   <meta property="og:type" content="article">
     <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2025-05-01T09:00:00-03:00">
-    <meta property="article:modified_time" content="2025-05-01T09:00:00-03:00">
-    <meta property="og:image" content="http://localhost:1313/logo.png">
+    <meta property="article:published_time" content="2025-05-31T09:00:00-03:00">
+    <meta property="article:modified_time" content="2025-05-31T09:00:00-03:00">
+    <meta property="og:image" content="https://n0tr3alx.github.io/logo.png">
 
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="http://localhost:1313/logo.png">
+  <meta name="twitter:image" content="https://n0tr3alx.github.io/logo.png">
   <meta name="twitter:title" content="Malicious Browser Extension Analysis: MSI installer -&gt; malicious extension -&gt; C2 domain hidden in crypto transactions">
   <meta name="twitter:description" content="Overview While randomly navigating, I found a very interesting malware, that while analyzing it didn’t create a traditional persistence on the machine via the registry, services, scheduled tasks, etc. Instead, it created a malicious extension on all of the user’s browsers. Additionally, the initial stage used a very interesting feature of the MSI file to execute a CustomAction from a DLL. This is a very in-depth analysis, so I hope you enjoy it!">
 <meta name="application-name" content="My cool site">
 <meta name="apple-mobile-web-app-title" content="My cool site"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/static/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
-        <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png"><link rel="mask-icon" href="/static/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="http://localhost:1313/malicious_extension/" /><link rel="prev" href="http://localhost:1313/atm_malware/" /><link rel="next" href="http://localhost:1313/zero2auto_custom/" /><link rel="stylesheet" href="/css/style.min.css"><link rel="preload" href="/lib/fontawesome-free/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png"><link rel="mask-icon" href="/static/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="https://n0tr3alx.github.io/malicious_extension/" /><link rel="prev" href="https://n0tr3alx.github.io/zero2auto_custom/" /><link rel="stylesheet" href="/css/style.min.css"><link rel="preload" href="/lib/fontawesome-free/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
         <noscript><link rel="stylesheet" href="/lib/fontawesome-free/all.min.css"></noscript><link rel="preload" href="/lib/animate/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
         <noscript><link rel="stylesheet" href="/lib/animate/animate.min.css"></noscript><script type="application/ld+json">
     {
@@ -32,9 +32,9 @@
         "inLanguage": "en",
         "mainEntityOfPage": {
             "@type": "WebPage",
-            "@id": "http:\/\/localhost:1313\/malicious_extension\/"
+            "@id": "https:\/\/n0tr3alx.github.io\/malicious_extension\/"
         },"image": ["https:\/\/avatars.githubusercontent.com\/u\/181849985?v=4"],"genre": "posts","wordcount":  2699 ,
-        "url": "http:\/\/localhost:1313\/malicious_extension\/","datePublished": "2025-05-01T09:00:00-03:00","dateModified": "2025-05-01T09:00:00-03:00","publisher": {
+        "url": "https:\/\/n0tr3alx.github.io\/malicious_extension\/","datePublished": "2025-05-31T09:00:00-03:00","dateModified": "2025-05-31T09:00:00-03:00","publisher": {
             "@type": "Organization",
             "name": "","logo": "https:\/\/avatars.githubusercontent.com\/u\/181849985?v=4"},"author": {
                 "@type": "Person",
@@ -107,7 +107,7 @@
             <div class="toc-content" id="toc-content-auto"></div>
         </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Malicious Browser Extension Analysis: MSI installer -> malicious extension -> C2 domain hidden in crypto transactions</h1><div class="post-meta">
             <div class="post-meta-line"><span class="post-author"><a href="/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>Lucas Volpiano</a></span></div>
-            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2025-05-01">2025-05-01</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;2699 words&nbsp;
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2025-05-31">2025-05-31</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;2699 words&nbsp;
                 <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;13 minutes&nbsp;</div>
         </div><div class="details toc" id="toc-static"  data-kept="">
                 <div class="details-summary toc-title">
@@ -1015,12 +1015,12 @@ handleScreenshotRules: Manages screenshot rules</p>
     <div class="post-info">
         <div class="post-info-line">
             <div class="post-info-mod">
-                <span>Updated on 2025-05-01</span>
+                <span>Updated on 2025-05-31</span>
             </div></div>
         <div class="post-info-line">
             <div class="post-info-md"></div>
             <div class="post-info-share">
-                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="http://localhost:1313/malicious_extension/" data-title="Malicious Browser Extension Analysis: MSI installer -&gt; malicious extension -&gt; C2 domain hidden in crypto transactions"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="http://localhost:1313/malicious_extension/"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Linkedin" data-sharer="linkedin" data-url="http://localhost:1313/malicious_extension/"><i class="fab fa-linkedin fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on WhatsApp" data-sharer="whatsapp" data-url="http://localhost:1313/malicious_extension/" data-title="Malicious Browser Extension Analysis: MSI installer -&gt; malicious extension -&gt; C2 domain hidden in crypto transactions" data-web><i class="fab fa-whatsapp fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="http://localhost:1313/malicious_extension/" data-title="Malicious Browser Extension Analysis: MSI installer -&gt; malicious extension -&gt; C2 domain hidden in crypto transactions"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Reddit" data-sharer="reddit" data-url="http://localhost:1313/malicious_extension/"><i class="fab fa-reddit fa-fw" aria-hidden="true"></i></a></span>
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://n0tr3alx.github.io/malicious_extension/" data-title="Malicious Browser Extension Analysis: MSI installer -&gt; malicious extension -&gt; C2 domain hidden in crypto transactions"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://n0tr3alx.github.io/malicious_extension/"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Linkedin" data-sharer="linkedin" data-url="https://n0tr3alx.github.io/malicious_extension/"><i class="fab fa-linkedin fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on WhatsApp" data-sharer="whatsapp" data-url="https://n0tr3alx.github.io/malicious_extension/" data-title="Malicious Browser Extension Analysis: MSI installer -&gt; malicious extension -&gt; C2 domain hidden in crypto transactions" data-web><i class="fab fa-whatsapp fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="https://n0tr3alx.github.io/malicious_extension/" data-title="Malicious Browser Extension Analysis: MSI installer -&gt; malicious extension -&gt; C2 domain hidden in crypto transactions"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Reddit" data-sharer="reddit" data-url="https://n0tr3alx.github.io/malicious_extension/"><i class="fab fa-reddit fa-fw" aria-hidden="true"></i></a></span>
             </div>
         </div>
     </div>
@@ -1032,8 +1032,7 @@ handleScreenshotRules: Manages screenshot rules</p>
         </section>
     </div>
 
-    <div class="post-nav"><a href="/atm_malware/" class="prev" rel="prev" title="ATM Malware Analysis: Ploutus Malware – Let’s Make This ATM Spit That Cash Out!"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>ATM Malware Analysis: Ploutus Malware – Let’s Make This ATM Spit That Cash Out!</a>
-            <a href="/zero2auto_custom/" class="next" rel="next" title="Zero2Auto: Custom Sample">Zero2Auto: Custom Sample<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+    <div class="post-nav"><a href="/zero2auto_custom/" class="prev" rel="prev" title="Zero2Auto: Custom Sample"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>Zero2Auto: Custom Sample</a></div>
 </div>
 </article></div>
             </main><footer class="footer">

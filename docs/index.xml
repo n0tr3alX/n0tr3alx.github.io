@@ -3,9 +3,18 @@
         <title>N0tR3al Hub</title>
         <link>https://n0tr3alx.github.io/</link>
         <description>Malware &amp; Reverse Engineering &amp; Some Other Stuff</description>
-        <generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Sun, 01 Jun 2025 09:00:00 -0300</lastBuildDate>
+        <generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Sat, 31 May 2025 09:00:00 -0300</lastBuildDate>
             <atom:link href="https://n0tr3alx.github.io/index.xml" rel="self" type="application/rss+xml" />
         <item>
+    <title>Malicious Browser Extension Analysis: MSI installer -&gt; malicious extension -&gt; C2 domain hidden in crypto transactions</title>
+    <link>https://n0tr3alx.github.io/malicious_extension/</link>
+    <pubDate>Sat, 31 May 2025 09:00:00 -0300</pubDate>
+    <author>Lucas Volpiano</author>
+    <guid>https://n0tr3alx.github.io/malicious_extension/</guid>
+    <description><![CDATA[<h3 id="overview">Overview</h3>
+<p>While randomly navigating, I found a very interesting malware, that while analyzing it didn&rsquo;t create a traditional persistence on the machine via the registry, services, scheduled tasks, etc. Instead, it created a malicious extension on all of the user&rsquo;s browsers. Additionally, the initial stage used a very interesting feature of the MSI file to execute a CustomAction from a DLL. This is a very in-depth analysis, so I hope you enjoy it!</p>]]></description>
+</item>
+<item>
     <title>Zero2Auto: Custom Sample</title>
     <link>https://n0tr3alx.github.io/zero2auto_custom/</link>
     <pubDate>Sat, 10 May 2025 10:00:00 -0300</pubDate>

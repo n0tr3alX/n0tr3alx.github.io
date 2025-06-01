@@ -2,8 +2,9 @@
     xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
     xmlns:xhtml="http://www.w3.org/1999/xhtml"
     ><url>
-            <loc>https://n0tr3alx.github.io/</loc><lastmod>2025-06-01T09:00:00-03:00</lastmod><changefreq>weekly</changefreq><priority>1</priority></url><url>
-            <loc>https://n0tr3alx.github.io/posts/</loc><lastmod>2025-06-01T09:00:00-03:00</lastmod><changefreq>weekly</changefreq><priority>1</priority></url><url>
+            <loc>https://n0tr3alx.github.io/malicious_extension/</loc><lastmod>2025-05-31T09:00:00-03:00</lastmod><changefreq>weekly</changefreq><priority>1</priority></url><url>
+            <loc>https://n0tr3alx.github.io/</loc><lastmod>2025-05-31T09:00:00-03:00</lastmod><changefreq>weekly</changefreq><priority>1</priority></url><url>
+            <loc>https://n0tr3alx.github.io/posts/</loc><lastmod>2025-05-31T09:00:00-03:00</lastmod><changefreq>weekly</changefreq><priority>1</priority></url><url>
             <loc>https://n0tr3alx.github.io/zero2auto_custom/</loc><lastmod>2025-05-10T10:00:00-03:00</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url><url>
             <loc>https://n0tr3alx.github.io/atm_malware/</loc><lastmod>2025-03-29T00:16:07-03:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
             <loc>https://n0tr3alx.github.io/from_fake_captcha_to_lumma_stealer/</loc><lastmod>2025-03-21T10:07:31-03:00</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url><url>
