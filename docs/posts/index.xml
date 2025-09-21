@@ -3,7 +3,16 @@
         <title>All Posts - N0tR3al Hub</title>
         <link>https://n0tr3alx.github.io/posts/</link>
         <description>All Posts | N0tR3al Hub</description>
-        <generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Sun, 21 Sep 2025 09:30:00 -0300</lastBuildDate><atom:link href="https://n0tr3alx.github.io/posts/" rel="self" type="application/rss+xml" /><item>
+        <generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Sun, 21 Sep 2025 00:00:00 -0300</lastBuildDate><atom:link href="https://n0tr3alx.github.io/posts/" rel="self" type="application/rss+xml" /><item>
+    <title>NPM Supply Chain Attack: Shai-Halud Worm</title>
+    <link>https://n0tr3alx.github.io/supply-chain-shai-halud/</link>
+    <pubDate>Sun, 21 Sep 2025 00:00:00 -0300</pubDate>
+    <author>Lucas Volpiano</author>
+    <guid>https://n0tr3alx.github.io/supply-chain-shai-halud/</guid>
+    <description><![CDATA[<h3 id="overview">Overview</h3>
+<p>Since September 8th, many NPM packages have been compromised. This is believed to be related to a phishing email with the title “Mandatory 2FA update,” which created a false sense of urgency by claiming accounts would be &ldquo;locked&rdquo; on September 10th if multi-factor authentication (MFA) was not enabled. Clicking the link led users to a fake login page at hxxps://www[.]npmjs[.]help/settings/qix/tfa/manageTfa?action=setup-totp. The domain npmjs.help mimics npm&rsquo;s official npmjs.com domain, and the attackers used it to send messages disguised as support notices.</p>]]></description>
+</item>
+<item>
     <title>Malicious Browser Extension Analysis: MSI installer -&gt; malicious extension -&gt; C2 domain hidden in crypto transactions</title>
     <link>https://n0tr3alx.github.io/malicious_extension/</link>
     <pubDate>Sat, 31 May 2025 09:00:00 -0300</pubDate>
