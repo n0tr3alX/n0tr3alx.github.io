@@ -3,7 +3,7 @@
         <title>N0tR3al Hub</title>
         <link>https://n0tr3alx.github.io/</link>
         <description>Malware &amp; Reverse Engineering &amp; Some Other Stuff</description>
-        <generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Sat, 31 May 2025 09:00:00 -0300</lastBuildDate>
+        <generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Sun, 21 Sep 2025 09:30:00 -0300</lastBuildDate>
             <atom:link href="https://n0tr3alx.github.io/index.xml" rel="self" type="application/rss+xml" />
         <item>
     <title>Malicious Browser Extension Analysis: MSI installer -&gt; malicious extension -&gt; C2 domain hidden in crypto transactions</title>

@@ -3,7 +3,7 @@
         <title>All Posts - N0tR3al Hub</title>
         <link>https://n0tr3alx.github.io/posts/</link>
         <description>All Posts | N0tR3al Hub</description>
-        <generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Sat, 31 May 2025 09:00:00 -0300</lastBuildDate><atom:link href="https://n0tr3alx.github.io/posts/" rel="self" type="application/rss+xml" /><item>
+        <generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Sun, 21 Sep 2025 09:30:00 -0300</lastBuildDate><atom:link href="https://n0tr3alx.github.io/posts/" rel="self" type="application/rss+xml" /><item>
     <title>Malicious Browser Extension Analysis: MSI installer -&gt; malicious extension -&gt; C2 domain hidden in crypto transactions</title>
     <link>https://n0tr3alx.github.io/malicious_extension/</link>
     <pubDate>Sat, 31 May 2025 09:00:00 -0300</pubDate>
