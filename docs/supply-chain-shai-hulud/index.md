@@ -1,4 +1,4 @@
-# NPM Supply Chain Attack: Shai-Halud Worm
+# NPM Supply Chain Attack: Shai-Hulud Worm
 
 
 ### Overview 

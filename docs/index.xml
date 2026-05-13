@@ -1,34 +1,34 @@
 <rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
     <channel>
         <title>N0tR3al Hub</title>
-        <link>https://n0tr3alx.github.io/</link>
+        <link>http://localhost:1313/</link>
         <description>Malware &amp; Reverse Engineering &amp; Some Other Stuff</description>
         <generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Sun, 21 Sep 2025 00:00:00 -0300</lastBuildDate>
-            <atom:link href="https://n0tr3alx.github.io/index.xml" rel="self" type="application/rss+xml" />
+            <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
         <item>
     <title>NPM Supply Chain Attack: Shai-Hulud Worm</title>
-    <link>https://n0tr3alx.github.io/supply-chain-shai-hualud/</link>
+    <link>http://localhost:1313/supply-chain-shai-hulud/</link>
     <pubDate>Sun, 21 Sep 2025 00:00:00 -0300</pubDate>
     <author>Lucas Volpiano</author>
-    <guid>https://n0tr3alx.github.io/supply-chain-shai-hulud/</guid>
+    <guid>http://localhost:1313/supply-chain-shai-hulud/</guid>
     <description><![CDATA[<h3 id="overview">Overview</h3>
 <p>Since September 8th, many NPM packages have been compromised. This is believed to be related to a phishing email with the title “Mandatory 2FA update,” which created a false sense of urgency by claiming accounts would be &ldquo;locked&rdquo; on September 10th if multi-factor authentication (MFA) was not enabled. Clicking the link led users to a fake login page at hxxps://www[.]npmjs[.]help/settings/qix/tfa/manageTfa?action=setup-totp. The domain npmjs.help mimics npm&rsquo;s official npmjs.com domain, and the attackers used it to send messages disguised as support notices.</p>]]></description>
 </item>
 <item>
     <title>Malicious Browser Extension Analysis: MSI installer -&gt; malicious extension -&gt; C2 domain hidden in crypto transactions</title>
-    <link>https://n0tr3alx.github.io/malicious_extension/</link>
+    <link>http://localhost:1313/malicious_extension/</link>
     <pubDate>Sat, 31 May 2025 09:00:00 -0300</pubDate>
     <author>Lucas Volpiano</author>
-    <guid>https://n0tr3alx.github.io/malicious_extension/</guid>
+    <guid>http://localhost:1313/malicious_extension/</guid>
     <description><![CDATA[<h3 id="overview">Overview</h3>
 <p>While randomly navigating, I found a very interesting malware, that while analyzing it didn&rsquo;t create a traditional persistence on the machine via the registry, services, scheduled tasks, etc. Instead, it created a malicious extension on all of the user&rsquo;s browsers. Additionally, the initial stage used a very interesting feature of the MSI file to execute a CustomAction from a DLL. This is a very in-depth analysis, so I hope you enjoy it!</p>]]></description>
 </item>
 <item>
     <title>Zero2Auto: Custom Sample</title>
-    <link>https://n0tr3alx.github.io/zero2auto_custom/</link>
+    <link>http://localhost:1313/zero2auto_custom/</link>
     <pubDate>Sat, 10 May 2025 10:00:00 -0300</pubDate>
     <author>Lucas Volpiano</author>
-    <guid>https://n0tr3alx.github.io/zero2auto_custom/</guid>
+    <guid>http://localhost:1313/zero2auto_custom/</guid>
     <description><![CDATA[<h3 id="overview">Overview</h3>
 <p>This is an analysis of a custom sample from Zero2Auto, my objective was to develop a script that automates the decryption process for the first stage of the malware. After that, I dive into a more in-depth analysis of its behavior and structure. Hope you enjoy the process and find it insightful!</p>
 
@@ -39,20 +39,20 @@ We&rsquo;re not too sure how much the binary has changed, though developing some
 </item>
 <item>
     <title>ATM Malware Analysis: Ploutus Malware – Let’s Make This ATM Spit That Cash Out!</title>
-    <link>https://n0tr3alx.github.io/atm_malware/</link>
+    <link>http://localhost:1313/atm_malware/</link>
     <pubDate>Sat, 29 Mar 2025 00:16:07 -0300</pubDate>
     <author>Lucas Volpiano</author>
-    <guid>https://n0tr3alx.github.io/atm_malware/</guid>
+    <guid>http://localhost:1313/atm_malware/</guid>
     <description><![CDATA[<h3 id="overview">Overview</h3>
 <p>ATM malwares are designed to compromise and manipulate automated teller machines (ATMs) for financial gain. These threats require the attacker to have physical access to the ATM to install the malware (Like a USB port access), connect external devices for activation, and, of course, cash out the money without requiring a card.</p>
 <p>There are many ATM malwares families but for this post i&rsquo;m focusing in the Ploutus malware family. Ploutus was first identified in Mexico in 2013 and has since evolved with new variants, including Ploutus-D, which emerged in 2017. This malware was first seen targeting <a href="https://www.kal.com/en/products/kalignite-platform" target="_blank" rel="noopener noreffer ">KAL’s Kalignite application</a>, which runs on various ATM vendors across different countries. However, the list of ATM vendors targeted has been observed to increase with new variants of the malware.</p>]]></description>
 </item>
 <item>
     <title>From Fake captcha to Lumma Stealer: JavaScript, Powerhsell and .NET analysis</title>
-    <link>https://n0tr3alx.github.io/from_fake_captcha_to_lumma_stealer/</link>
+    <link>http://localhost:1313/from_fake_captcha_to_lumma_stealer/</link>
     <pubDate>Fri, 21 Mar 2025 10:07:31 -0300</pubDate>
     <author>Lucas Volpiano</author>
-    <guid>https://n0tr3alx.github.io/from_fake_captcha_to_lumma_stealer/</guid>
+    <guid>http://localhost:1313/from_fake_captcha_to_lumma_stealer/</guid>
     <description><![CDATA[<h3 id="overview">Overview</h3>
 <p>Since 2024, the &lsquo;Fake Captcha&rsquo; technique has become very common. It is a social engineering attack that tricks the user into executing a command locally on their endpoint, after which the next stages of the malware are downloaded and executed.</p>
 <p>A lot of threat actors are using this technique to spread Lumma Stealer, which has been one of the <a href="https://any.run/malware-trends/" target="_blank" rel="noopener noreffer ">most commonly used stealers</a>!</p>
@@ -60,10 +60,10 @@ We&rsquo;re not too sure how much the binary has changed, though developing some
 </item>
 <item>
     <title>Cobalt Strike: Shellcode and Config extraction</title>
-    <link>https://n0tr3alx.github.io/cobalt_strike_shellcode_and_config_extraction/</link>
+    <link>http://localhost:1313/cobalt_strike_shellcode_and_config_extraction/</link>
     <pubDate>Mon, 03 Mar 2025 20:19:51 -0300</pubDate>
     <author>Lucas Volpiano</author>
-    <guid>https://n0tr3alx.github.io/cobalt_strike_shellcode_and_config_extraction/</guid>
+    <guid>http://localhost:1313/cobalt_strike_shellcode_and_config_extraction/</guid>
     <description><![CDATA[<h3 id="overview">Overview</h3>
 <p><a href="https://www.cobaltstrike.com/" target="_blank" rel="noopener noreffer ">Cobalt Strike</a> is a commercial red team and adversary simulation tool. It is widely used by security professionals to assess the security of networks and systems by simulating advanced persistent threats (APTs). As everything, due to its powerful capabilities, it has also been misused by cybercriminals and threat actors.</p>
 <p>In this post contains the analysis of two samples: Staged and Stageless payload. The extraction of the shellcode and the beacon for its configuration are quite similar in both payloads.</p>]]></description>
